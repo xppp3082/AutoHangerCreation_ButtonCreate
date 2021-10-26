@@ -19,7 +19,8 @@ namespace AutoHangerCreation_ButtonCreate
         {
             //UIDocument uidoc = commandData.Application.ActiveUIDocument;
             //ICollection<ElementId> ids = uidoc.Selection.GetElementIds();
-            //Document doc = uidoc.Document; //以上為不分類所有東西的可以選的版本
+            //Document doc = uidoc.Document; 
+            //以上為不分類所有東西的可以選的版本
 
             //限制使用者只能選中管
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
@@ -34,7 +35,15 @@ namespace AutoHangerCreation_ButtonCreate
 
 
             StringBuilder st = new StringBuilder();
-            //st.AppendLine("位於以下座標的管已被選取:");
+            //st.AppendLine("耶一:");
+
+            //set up form and ask for user information
+            Form1 form1 = new Form1(commandData);
+            form1.ShowDialog();
+
+            //grab string values from form1 and convert to respectives types
+            string divideValueString = form1.divideValue.ToString();
+            double divideValue_double = double.Parse(divideValueString)/30.48; //英制轉公制
 
 
             foreach (Element element in pickElements)
@@ -53,15 +62,15 @@ namespace AutoHangerCreation_ButtonCreate
 
                 double pipeLength = pipeCurve.Length;
 
-                double requiredDist = 3; //需要安裝的距離(單位待確定)
+                //double requiredDist = 3; //需要安裝的距離(單位待確定) -->後來被form1中的divideValue_double取代(新增彈出視窗)
 
                 double param1 = pipeCurve.GetEndParameter(0);
                 double param2 = pipeCurve.GetEndParameter(1);
 
-                int step = (int)(pipeLength / requiredDist); //要分割的數量 (不確定是否有四捨五入)
+                int step = (int)(pipeLength / divideValue_double); //要分割的數量 (不確定是否有四捨五入)
 
                 double paramCalc = param1 + ((param2 - param1)
-                  * requiredDist / pipeLength);
+                  * divideValue_double / pipeLength);
 
                 //創造一個容器裝所有點資料(位於線上的)
                 IList<double> paramList = new List<double>();
@@ -73,7 +82,7 @@ namespace AutoHangerCreation_ButtonCreate
 
                 for (int i = 0; i < step; i++)
                 {
-                    paramCalc = param1 + ((param2 - param1) * requiredDist * (i + 1) / pipeLength);
+                    paramCalc = param1 + ((param2 - param1) * divideValue_double * (i + 1) / pipeLength);
                     if (pipeCurve.IsInside(paramCalc) == true)
                     {
                         double normParam = pipeCurve.ComputeNormalizedParameter(paramCalc);
@@ -108,7 +117,7 @@ namespace AutoHangerCreation_ButtonCreate
 
             }
 
-            //MessageBox.Show(st.ToString());
+            MessageBox.Show(st.ToString());
 
             trans.Commit();
             return Result.Succeeded;

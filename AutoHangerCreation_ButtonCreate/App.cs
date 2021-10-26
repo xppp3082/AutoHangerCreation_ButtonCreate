@@ -20,10 +20,10 @@ namespace AutoHangerCreation_ButtonCreate
 {
     class App : IExternalApplication
     {
+        //用來創造按鈕
         const string RIBBON_TAB = "Travis Tools";
         const string RIBBON_PANEL = "Ribbon Button Sample2";
-
-
+        
 
         public Result OnStartup(UIControlledApplication a)
         {
