@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.cs" />
+    <Compile Include="MultiHangerCreation.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

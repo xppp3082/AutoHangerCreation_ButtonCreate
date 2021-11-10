@@ -15,6 +15,7 @@ namespace AutoHangerCreation_ButtonCreate
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     public class HangerCreation : IExternalCommand
     {
+        DisplayUnitType unitType = DisplayUnitType.DUT_MILLIMETERS;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             //UIDocument uidoc = commandData.Application.ActiveUIDocument;
@@ -28,7 +29,6 @@ namespace AutoHangerCreation_ButtonCreate
 
 
             IList<Element> pickElements = uidoc.Selection.PickElementsByRectangle(pipeFilter, "請選擇管");
-
             Document doc = uidoc.Document;
             Transaction trans = new Transaction(doc);
             trans.Start("放置管架");
@@ -37,14 +37,15 @@ namespace AutoHangerCreation_ButtonCreate
             StringBuilder st = new StringBuilder();
             //st.AppendLine("耶一:");
 
-            //set up form and ask for user information
+            //set up form and ask for user information -->創造表格並詢問資訊
             Form1 form1 = new Form1(commandData);
             form1.ShowDialog();
 
             //grab string values from form1 and convert to respectives types
             string divideValueString = form1.divideValue.ToString();
-            double divideValue_double = double.Parse(divideValueString)/30.48; //英制轉公制
-
+            //double divideValue_doubleTemp = double.Parse(divideValueString)/30.48; //英制轉公制，但直接除30.48的手法有點粗糙
+            double divideValue_doubleTemp = double.Parse(divideValueString);
+            double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
 
             foreach (Element element in pickElements)
             {
@@ -62,19 +63,16 @@ namespace AutoHangerCreation_ButtonCreate
 
                 double pipeLength = pipeCurve.Length;
 
-                //double requiredDist = 3; //需要安裝的距離(單位待確定) -->後來被form1中的divideValue_double取代(新增彈出視窗)
-
                 double param1 = pipeCurve.GetEndParameter(0);
                 double param2 = pipeCurve.GetEndParameter(1);
 
-                int step = (int)(pipeLength / divideValue_double); //要分割的數量 (不確定是否有四捨五入)
+                //計算要分割的數量 (不確定是否有四捨五入)
+                int step = (int)(pipeLength / divideValue_double); 
 
                 double paramCalc = param1 + ((param2 - param1)
                   * divideValue_double / pipeLength);
 
                 //創造一個容器裝所有點資料(位於線上的)
-                IList<double> paramList = new List<double>();
-
                 IList<Point> pointList = new List<Point>();
                 IList<XYZ> locationList = new List<XYZ>();
                 XYZ evaluatedPoint = null;
@@ -117,7 +115,7 @@ namespace AutoHangerCreation_ButtonCreate
 
             }
 
-            MessageBox.Show(st.ToString());
+            //MessageBox.Show(st.ToString());
 
             trans.Commit();
             return Result.Succeeded;
@@ -138,11 +136,6 @@ namespace AutoHangerCreation_ButtonCreate
             foreach (Element e in all)
             {
                 FamilySymbol familySymbol = e as FamilySymbol;
-                //if (familySymbol.Name == "DN100(4) x R1/2")
-                //if(familySymbol.Name == "DN100(4\")x R1/2\"") //for 100mm
-                //if (familySymbol.Name == "DN80(3\")x R1/2\"") //for 80mm
-                //if (familySymbol.Name == "DN50(2\")x R3/8\"") //for 50mm
-                //if (familySymbol.Name == "DN32(1¼\")x R3/8\"") //for 25mm
 
                 if (pipe.LookupParameter("大小").AsString() == "100 mmø")
                 {

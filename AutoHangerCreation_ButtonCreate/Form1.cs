@@ -55,5 +55,10 @@ namespace AutoHangerCreation_ButtonCreate
             cancelButton.DialogResult = DialogResult.Cancel;
             Debug.WriteLine("Cancel button was clicked"); //呼叫debug必須要引用using System.Diagnostics;
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
