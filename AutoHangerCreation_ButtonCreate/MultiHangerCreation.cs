@@ -13,6 +13,7 @@ namespace AutoHangerCreation_ButtonCreate
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     public class MultiHangerCreation : IExternalCommand
     {
+        //創造多管吊架
         DisplayUnitType unitType = DisplayUnitType.DUT_MILLIMETERS;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -34,22 +35,33 @@ namespace AutoHangerCreation_ButtonCreate
             trans.Start("放置多管吊架");
 
             //set up from and ask for user information -->創造表格並詢問資訊
-            Form1 form1 = new Form1(commandData);
-            form1.ShowDialog();
+            Form2 form2 = new Form2(commandData);
+            form2.ShowDialog();
 
             //grab string values from form1 and convert to respectives types
-            string divideValueString = form1.divideValue.ToString();
+            //設定分割數值與各管管徑
+            string divideValueString = form2.divideValue.ToString();
+            string diameter1 = form2.pipeDiameter1.ToString();
+            string diameter2 = form2.pipeDiameter2.ToString();
+            string diameter3 = form2.pipeDiameter3.ToString();
+            string diameter4 = form2.pipeDiameter4.ToString();
+            string diameter5 = form2.pipeDiameter5.ToString();
+            string diameter6 = form2.pipeDiameter6.ToString();
+            string diameter7 = form2.pipeDiameter7.ToString();
+            string diameter8 = form2.pipeDiameter8.ToString();
+
+            //單位轉換
             double divideValue_doubleTemp = double.Parse(divideValueString);
             double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
 
             //創造一個容器，裝取依序點選的管徑
-            List<double> pipeDiameters = new List<double>();
-            foreach (Element pipe in pickElements)
-            {
-                double pipeDia = pipe.LookupParameter("直徑").AsDouble();
-                pipeDiameters.Add(pipeDia);
-            }
-            MessageBox.Show(pipeDiameters[0].ToString());
+            //List<double> pipeDiameters = new List<double>();
+            //foreach (Element pipe in pickElements)
+            //{
+            //    double pipeDia = pipe.LookupParameter("直徑").AsDouble();
+            //    pipeDiameters.Add(pipeDia);
+            //}
+            //MessageBox.Show(pipeDiameters[0].ToString());
 
             foreach (Element element in pickElements)
             {
@@ -98,11 +110,20 @@ namespace AutoHangerCreation_ButtonCreate
                     Element hanger = new MultiPipeHanger().CreateMultiHanger(uidoc.Document, p1, element, multiHangerType);
                     XYZ p2 = new XYZ(p1.X, p1.Y, p1.Z + 1);
                     Line Axis = Line.CreateBound(p1, p2);
-                    XYZ p3 = new XYZ(0, p1.Y, 0); //測量吊架與管段之間的向量差異，取plane中的x向量
+                    XYZ p3 = new XYZ(0, p1.X, 0); //測量吊架與管段之間的向量差異，取plane中的x向量
 
                     degrees = p3.AngleTo(pipeLineProject.Direction);
                     hanger.Location.Rotate(Axis, degrees);//旋轉吊架
-                    double offset = hanger.LookupParameter("偏移").AsDouble();
+                    hanger.LookupParameter("管直徑01").SetValueString(diameter1);
+                    hanger.LookupParameter("管直徑02").SetValueString(diameter2);
+                    hanger.LookupParameter("管直徑03").SetValueString(diameter3);
+                    hanger.LookupParameter("管直徑04").SetValueString(diameter4);
+                    hanger.LookupParameter("管直徑05").SetValueString(diameter5);
+                    hanger.LookupParameter("管直徑06").SetValueString(diameter6);
+                    hanger.LookupParameter("管直徑07").SetValueString(diameter7);
+                    hanger.LookupParameter("管直徑08").SetValueString(diameter8);
+                    
+                    //double offset = hanger.LookupParameter("偏移").AsDouble();
                 }
                 string total = pointList.Count.ToString();
                 MessageBox.Show("共產生" + total + "個多管吊架");

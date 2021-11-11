@@ -70,6 +70,7 @@ namespace AutoHangerCreation_ButtonCreate
             this.divideLengthTextBox.Name = "divideLengthTextBox";
             this.divideLengthTextBox.Size = new System.Drawing.Size(159, 22);
             this.divideLengthTextBox.TabIndex = 4;
+            this.divideLengthTextBox.Text = "10.0";
             this.divideLengthTextBox.TextChanged += new System.EventHandler(this.divideLength_TextChanged);
             // 
             // Form1

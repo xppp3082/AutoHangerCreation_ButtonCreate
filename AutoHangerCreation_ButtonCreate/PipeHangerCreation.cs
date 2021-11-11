@@ -12,6 +12,7 @@ using Autodesk.Revit.DB.Structure;
 
 namespace AutoHangerCreation_ButtonCreate
 {
+    //創造單管吊架
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     public class HangerCreation : IExternalCommand
     {
