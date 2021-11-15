@@ -122,7 +122,13 @@ namespace AutoHangerCreation_ButtonCreate
                     hanger.LookupParameter("管直徑06").SetValueString(diameter6);
                     hanger.LookupParameter("管直徑07").SetValueString(diameter7);
                     hanger.LookupParameter("管直徑08").SetValueString(diameter8);
-                    
+
+                    //做最後的吊架對位修正
+                    double transit = UnitUtils.ConvertToInternalUnits(double.Parse(diameter1), unitType); ;
+
+                    XYZ translationVector = new XYZ(0, -transit/2 - (10 / 30.48), -transit/2);
+                    ElementTransformUtils.MoveElement(doc, hanger.Id, translationVector);
+
                     //double offset = hanger.LookupParameter("偏移").AsDouble();
                 }
                 string total = pointList.Count.ToString();
@@ -158,7 +164,7 @@ namespace AutoHangerCreation_ButtonCreate
                             targetFamily = familySymbol;
                         }
                     }
-                    catch (Exception ex) when (targetFamily == null)
+                    catch (ArgumentNullException ex) when (targetFamily == null)
                     {
                         MessageBox.Show(ex.ToString());
                         MessageBox.Show("尚未匯入指定的多管吊架 !!!");
