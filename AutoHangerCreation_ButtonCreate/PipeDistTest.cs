@@ -24,7 +24,7 @@ namespace AutoHangerCreation_ButtonCreate
             List<Element> pickElements = new List<Element>();
             Document doc = uidoc.Document;
             //管數量
-            int pipeCount = 7;
+            int pipeCount = 5;
             for (int i = 0; i < pipeCount; i++)
             {
                 Reference pickElements_Refer = uidoc.Selection.PickObject(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段，還剩 {pipeCount - i} 隻管要選擇");
@@ -67,21 +67,92 @@ namespace AutoHangerCreation_ButtonCreate
                 //Curve calCurve = locationCurve.Curve;
                 //XYZ calStr = calCurve.GetEndPoint(0);
                 //XYZ calEnd = calCurve.GetEndPoint(1);
-
-
                 //Line calCurveProject = Line.CreateBound(calStr, new XYZ(calEnd.X, calEnd.Y, calStr.Z));
                 //double angleTest = basePt.AngleTo(calCurveProject.Direction) * (180 / Math.PI);
+
                 pipeDiameters.Add(pipeDia);
-                //st.AppendLine(angleTest.ToString());
                 st.AppendLine(pipeDia.ToString());
             }
 
             MessageBox.Show(pipeDiameters.Count.ToString());
-            //MessageBox.Show("產生的夾角角度分別為:" + st.ToString());
             MessageBox.Show("選中的管徑分別為:" + st.ToString());
 
+            //開始放置吊架
+            Transaction trans = new Transaction(doc);
+            trans.Start("放置多管吊架");
+
+            //創造表格把資訊載入
+            Form1 form1 = new Form1(commandData);
+            form1.ShowDialog();
+            string divideValueString = form1.divideValue.ToString();
+            double divideValue_Temp = double.Parse(divideValueString);
+            double divideValue_Double = UnitUtils.ConvertToInternalUnits(divideValue_Temp, unitType);
 
 
+            FamilySymbol multiHangerType = new MultiPipeHanger().FindhangerType(doc);
+            LocationCurve locationCurve = sortElements[0].Location as LocationCurve;
+            Curve pipeCurve = locationCurve.Curve;
+
+            XYZ pipeStart = pipeCurve.GetEndPoint(0);
+            XYZ pipeEnd = pipeCurve.GetEndPoint(1);
+            XYZ pipeEndAdjust = new XYZ(pipeEnd.X,pipeEnd.Y,pipeStart.Z);
+            Line pipeLineProject = Line.CreateBound(pipeStart, pipeEndAdjust);
+
+            //這裡可能會有一點bug 因為第一條管不一定會是最長的
+            double pipeLength = pipeCurve.Length;
+            double param1 = pipeCurve.GetEndParameter(0);
+            double param2 = pipeCurve.GetEndParameter(1);
+
+            //計算分割的數量
+            int step = (int)(pipeLength /divideValue_Double );
+            double paramCalc = param1 + ((param2 - param1) * divideValue_Double / pipeLength);
+
+            //創造一個容器裝所有點資料，提供給日後放置管吊架的依據
+            IList<Point> pointList = new List<Point>();
+            IList<XYZ> locationList = new List<XYZ>();
+            XYZ evaluatedPoint = null;
+            var degrees = 0.0;
+
+            for (int i =0; i < step; i++)
+            {
+                paramCalc = param1 + ((param2 - param1) * divideValue_Double * (i + 1) / pipeLength);
+                if (pipeCurve.IsInside(paramCalc) == true)
+                {
+                    double normParam = pipeCurve.ComputeNormalizedParameter(paramCalc);
+
+                    evaluatedPoint = pipeCurve.Evaluate(normParam, true);
+                    Point locationPoint = Point.Create(evaluatedPoint);
+                    //XYZ evaluatedProject = new XYZ(evaluatedPoint.X, evaluatedPoint.Y, 0);
+                    pointList.Add(locationPoint);
+                    locationList.Add(evaluatedPoint);
+                }
+            }
+
+            foreach (XYZ p1 in locationList)
+            {
+                Element hanger = new MultiPipeHanger().CreateMultiHanger(uidoc.Document, p1, sortElements[0], multiHangerType);
+                XYZ p2 = new XYZ(p1.X, p1.Y, p1.Z + 1);
+                Line Axis = Line.CreateBound(p1, p2);
+                XYZ p3 = new XYZ(0, p1.X, 0); //測量吊架與管段之間的向量差異，取plane中的x向量
+
+                degrees = p3.AngleTo(pipeLineProject.Direction);
+                hanger.Location.Rotate(Axis, degrees); //旋轉吊架方法1
+                for(int i = 0; i < pipeDiameters.Count; i++)
+                {
+                    hanger.LookupParameter($"管直徑0{i + 1}").SetValueString(pipeDiameters[i].ToString());
+                }
+                for(int i = 0; i < pipeDist.Count; i++)
+                {
+                    hanger.LookupParameter($"管間距0{i + 1}").Set(pipeDist[i]);
+                }
+                //做最後的調製，以第一個管為依據，將多管吊架對應至管底
+                double originOffset = hanger.LookupParameter("偏移").AsDouble();
+                double toMove = sortElements[0].LookupParameter("外徑").AsDouble()/2;
+                hanger.LookupParameter("偏移").Set(originOffset - toMove);
+            }
+            string total = pointList.Count.ToString();
+            MessageBox.Show("共產生" + total + "個多管吊架");
+            trans.Commit();
             return Result.Succeeded;
         }
         class MultiPipeHanger
@@ -104,7 +175,7 @@ namespace AutoHangerCreation_ButtonCreate
                     FamilySymbol familySymbol = e as FamilySymbol;
                     try
                     {
-                        if (familySymbol.Name == "多管吊架_管v8")
+                        if (familySymbol.Name == "多管吊架_管v9")
                         {
                             targetFamily = familySymbol;
                         }

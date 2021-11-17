@@ -55,6 +55,7 @@ namespace AutoHangerCreation_ButtonCreate
             double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
 
 
+
             foreach (Element element in pickElements)
             {
                 //針對每個管去找familyType
