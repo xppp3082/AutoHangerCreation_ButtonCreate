@@ -54,14 +54,6 @@ namespace AutoHangerCreation_ButtonCreate
             double divideValue_doubleTemp = double.Parse(divideValueString);
             double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
 
-            //創造一個容器，裝取依序點選的管徑
-            //List<double> pipeDiameters = new List<double>();
-            //foreach (Element pipe in pickElements)
-            //{
-            //    double pipeDia = pipe.LookupParameter("直徑").AsDouble();
-            //    pipeDiameters.Add(pipeDia);
-            //}
-            //MessageBox.Show(pipeDiameters[0].ToString());
 
             foreach (Element element in pickElements)
             {
