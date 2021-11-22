@@ -21,7 +21,7 @@ namespace AutoHangerCreation_ButtonCreate
     class App : IExternalApplication
     {
         //用來創造按鈕 for 單管
-        const string RIBBON_TAB = "Travis Tools";
+        const string RIBBON_TAB = "【CHC MEP】";
         const string RIBBON_PANEL = "Ribbon Button Sample2";
         
 

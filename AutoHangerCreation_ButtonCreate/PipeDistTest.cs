@@ -23,14 +23,18 @@ namespace AutoHangerCreation_ButtonCreate
             //點選要一起放置多管吊架的管段
             List<Element> pickElements = new List<Element>();
             Document doc = uidoc.Document;
-            //管數量
-            int pipeCount = 5;
-            for (int i = 0; i < pipeCount; i++)
+            IList<Reference> pickElements_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段，單次最多選擇 8 隻管");
+
+            foreach (Reference reference in pickElements_Refer)
             {
-                Reference pickElements_Refer = uidoc.Selection.PickObject(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段，還剩 {pipeCount - i} 隻管要選擇");
-                Element element = doc.GetElement(pickElements_Refer.ElementId);
+                Element element = doc.GetElement(reference.ElementId);
                 pickElements.Add(element);
             }
+
+            //開始放置吊架
+            Transaction trans = new Transaction(doc);
+            trans.Start("放置多管吊架");
+
             List<Element>sortElements= pickElements.OrderBy(x=>sortPIpeByRefer(x)).ToList();
             StringBuilder st = new StringBuilder();
             List<double> pipeDist = new List<double>();
@@ -69,7 +73,8 @@ namespace AutoHangerCreation_ButtonCreate
                 //XYZ calEnd = calCurve.GetEndPoint(1);
                 //Line calCurveProject = Line.CreateBound(calStr, new XYZ(calEnd.X, calEnd.Y, calStr.Z));
                 //double angleTest = basePt.AngleTo(calCurveProject.Direction) * (180 / Math.PI);
-
+                string pipeNum = sortElements.IndexOf(pipe).ToString();
+                pipe.LookupParameter("備註").Set(pipeNum);
                 pipeDiameters.Add(pipeDia);
                 st.AppendLine(pipeDia.ToString());
             }
@@ -77,21 +82,28 @@ namespace AutoHangerCreation_ButtonCreate
             MessageBox.Show(pipeDiameters.Count.ToString());
             MessageBox.Show("選中的管徑分別為:" + st.ToString());
 
-            //開始放置吊架
-            Transaction trans = new Transaction(doc);
-            trans.Start("放置多管吊架");
+
+
 
             //創造表格把資訊載入
-            Form1 form1 = new Form1(commandData);
-            form1.ShowDialog();
-            string divideValueString = form1.divideValue.ToString();
-            double divideValue_Temp = double.Parse(divideValueString);
-            double divideValue_Double = UnitUtils.ConvertToInternalUnits(divideValue_Temp, unitType);
+            UserControl1 UserForm = new UserControl1(commandData);
+            UserForm.ShowDialog();
+            string divideValueString = UserForm.divideValue.ToString();
+            double divideValue_temp = double.Parse(divideValueString);
+            double divideValue_Double = UnitUtils.ConvertToInternalUnits(divideValue_temp, unitType);
+            //UserForm.hangerCountBox.Text
+
+            //Form1 form1 = new Form1(commandData);
+            //form1.ShowDialog();
+            //string divideValueString = form1.divideValue.ToString();
+            //double divideValue_Temp = double.Parse(divideValueString);
+            //double divideValue_Double = UnitUtils.ConvertToInternalUnits(divideValue_Temp, unitType);
 
 
             FamilySymbol multiHangerType = new MultiPipeHanger().FindhangerType(doc);
             LocationCurve locationCurve = sortElements[0].Location as LocationCurve;
             Curve pipeCurve = locationCurve.Curve;
+
 
             XYZ pipeStart = pipeCurve.GetEndPoint(0);
             XYZ pipeEnd = pipeCurve.GetEndPoint(1);
@@ -133,9 +145,9 @@ namespace AutoHangerCreation_ButtonCreate
                 Element hanger = new MultiPipeHanger().CreateMultiHanger(uidoc.Document, p1, sortElements[0], multiHangerType);
                 XYZ p2 = new XYZ(p1.X, p1.Y, p1.Z + 1);
                 Line Axis = Line.CreateBound(p1, p2);
-                XYZ p3 = new XYZ(0, p1.X, 0); //測量吊架與管段之間的向量差異，取plane中的x向量
-
-                degrees = p3.AngleTo(pipeLineProject.Direction);
+                //XYZ p3 = new XYZ(0, p1.X, 0); //測量吊架與管段之間的向量差異，取plane中的x向量
+                XYZ p3 = new XYZ(0, p1.X, 0);
+                degrees =Math.PI- p3.AngleTo(pipeLineProject.Direction);
                 hanger.Location.Rotate(Axis, degrees); //旋轉吊架方法1
                 for(int i = 0; i < pipeDiameters.Count; i++)
                 {
@@ -157,11 +169,6 @@ namespace AutoHangerCreation_ButtonCreate
         }
         class MultiPipeHanger
         {
-            //創建多管class-->其中包含三項功能
-            //1.找到family
-            //2.蒐集各種管徑
-            //3.寫入管徑參數
-            //依點放置吊點+移動
             public FamilySymbol FindhangerType(Document doc)
             {
                 //尋找吊架的族群(FamilySymbol)
@@ -175,7 +182,7 @@ namespace AutoHangerCreation_ButtonCreate
                     FamilySymbol familySymbol = e as FamilySymbol;
                     try
                     {
-                        if (familySymbol.Name == "多管吊架_管v9")
+                        if (familySymbol.Name == "多管吊架_管v10")
                         {
                             targetFamily = familySymbol;
                         }

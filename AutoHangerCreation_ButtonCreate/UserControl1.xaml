@@ -1,0 +1,76 @@
+﻿<Window x:Class="AutoHangerCreation_ButtonCreate.UserControl1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AutoHangerCreation_ButtonCreate"
+             mc:Ignorable="d" 
+             Title="CEC MEP - 放置多管吊架"
+             d:DesignHeight="380" d:DesignWidth="400">
+    <Border Padding="20">
+        <StackPanel>
+
+            <TextBlock Text="Divide Properties" FontWeight="Bold" FontSize="18" Margin="0 10" />
+
+            <!-- Description -->
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0 0 10 0">
+                    <TextBlock Text="分割長度"  FontSize="15" />
+                    <TextBox x:Name="divideValueBox" Padding="5" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="0 25 0 0">
+                    <TextBlock Text="mm"  FontSize="15" />
+                </StackPanel>
+            </Grid>
+            <!-- Status and Revision -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!--Status-->
+                <StackPanel Grid.Column="0" Margin="0 0 10 0">
+                    <TextBlock Text="數量計算" FontSize="15"/>
+                    <TextBox x:Name="hangerCountBox" Background="#eee" IsReadOnly="True"  Padding="5" />
+                </StackPanel>
+
+                <!--Revision-->
+                <StackPanel Grid.Column="1" Margin="0,0,0,0">
+                    <TextBlock Text="個吊架" FontSize="15" Margin="0,25,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Raw Material -->
+            <TextBlock Text="Family List" FontWeight="Bold" Margin="0 20 0 10" FontSize="18"/>
+
+            <!--Description-->
+            <TextBlock Text="Material"  FontSize="15"/>
+            <ComboBox SelectedIndex="0" Padding="5">
+                <ComboBoxItem>Test1</ComboBoxItem>
+                <ComboBoxItem>Test2</ComboBoxItem>
+            </ComboBox>
+
+            <!-- Buttons -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="ContinueButton" Click="ContinueButton_Click" Padding="5" Margin ="0 30 20 0" Grid.Column="0" Content="確定" FontSize="12" FontWeight="DemiBold"/>
+                <Button x:Name="CancelButton" Click="CancelButton_Click" Padding="5" Margin ="20 30 0 0" Grid.Column="1" Content="取消" FontSize="12" FontWeight="DemiBold" />
+
+            </Grid>
+        </StackPanel>
+    </Border>
+
+
+</Window>
