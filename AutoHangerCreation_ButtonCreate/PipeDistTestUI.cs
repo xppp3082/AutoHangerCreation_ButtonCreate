@@ -25,15 +25,15 @@ namespace AutoHangerCreation_ButtonCreate
     /// <summary>
     /// UserControl1.xaml 的互動邏輯
     /// </summary>
-    public partial class UserControl1 : Window
+    public partial class PipeDistTestUI : Window
     {
         private UIApplication uiapp;
         private UIDocument uidoc;
         private Autodesk.Revit.ApplicationServices.Application app;
         private Document doc;
         public string divideValue;
-
-        public UserControl1(ExternalCommandData commandData)
+  
+        public PipeDistTestUI(ExternalCommandData commandData,FamilySymbol hangerType)
         {
             InitializeComponent();
 
@@ -41,12 +41,12 @@ namespace AutoHangerCreation_ButtonCreate
             uidoc = uiapp.ActiveUIDocument;
             app = uiapp.Application;
             doc = uidoc.Document;
+            FamilyListBox.Items.Add(hangerType.Name);
         }
 
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
             divideValue = divideValueBox.Text;
-            
             Debug.WriteLine("Ok button was clicked.");
             Close();
 
@@ -57,10 +57,12 @@ namespace AutoHangerCreation_ButtonCreate
         {
             Debug.WriteLine("Cancel button was clicked"); //呼叫debug必須要引用using System.Diagnostics;
             Close();
-
             return;
         }
 
-
+        private void FamilyListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.hangerType_default.Text =FamilyListBox.SelectedItem.ToString();
+        }
     }
 }

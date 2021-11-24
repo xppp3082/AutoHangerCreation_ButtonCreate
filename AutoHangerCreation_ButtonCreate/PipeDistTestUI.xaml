@@ -1,4 +1,4 @@
-﻿<Window x:Class="AutoHangerCreation_ButtonCreate.UserControl1"
+﻿<Window x:Class="AutoHangerCreation_ButtonCreate.PipeDistTestUI"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,8 +6,12 @@
              xmlns:local="clr-namespace:AutoHangerCreation_ButtonCreate"
              mc:Ignorable="d" 
              Title="CEC MEP - 放置多管吊架"
-             d:DesignHeight="380" d:DesignWidth="400">
-    <Border Padding="20">
+             Height="360"
+             Width="380"
+             WindowStartupLocation="CenterScreen" Background="White"
+        >
+    <!--d:DesignHeight="400" d:DesignWidth="600"-->
+    <Border Padding="15">
         <StackPanel>
 
             <TextBlock Text="Divide Properties" FontWeight="Bold" FontSize="18" Margin="0 10" />
@@ -21,11 +25,11 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Margin="0 0 10 0">
-                    <TextBlock Text="分割長度"  FontSize="15" />
+                    <TextBlock Text="分割長度"  FontSize="12" />
                     <TextBox x:Name="divideValueBox" Padding="5" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="0 25 0 0">
-                    <TextBlock Text="mm"  FontSize="15" />
+                    <TextBlock Text="mm"  FontSize="12" />
                 </StackPanel>
             </Grid>
             <!-- Status and Revision -->
@@ -37,13 +41,13 @@
 
                 <!--Status-->
                 <StackPanel Grid.Column="0" Margin="0 0 10 0">
-                    <TextBlock Text="數量計算" FontSize="15"/>
-                    <TextBox x:Name="hangerCountBox" Background="#eee" IsReadOnly="True"  Padding="5" />
+                    <TextBlock Text="預設類型" FontSize="12"/>
+                    <TextBox x:Name="hangerType_default" Background="#eee" IsReadOnly="True"  Padding="5"/>
                 </StackPanel>
 
                 <!--Revision-->
                 <StackPanel Grid.Column="1" Margin="0,0,0,0">
-                    <TextBlock Text="個吊架" FontSize="15" Margin="0,25,0,0"/>
+                    <TextBlock Text="預設測試" FontSize="12" Margin="0,25,0,0"/>
                 </StackPanel>
             </Grid>
 
@@ -51,8 +55,8 @@
             <TextBlock Text="Family List" FontWeight="Bold" Margin="0 20 0 10" FontSize="18"/>
 
             <!--Description-->
-            <TextBlock Text="Material"  FontSize="15"/>
-            <ComboBox SelectedIndex="0" Padding="5">
+            <TextBlock Text="請選擇欲放置的族群類型"  FontSize="12"/>
+            <ComboBox x:Name="FamilyListBox" SelectedIndex="0" Padding="5" SelectionChanged="FamilyListBox_SelectionChanged">
                 <ComboBoxItem>Test1</ComboBoxItem>
                 <ComboBoxItem>Test2</ComboBoxItem>
             </ComboBox>
