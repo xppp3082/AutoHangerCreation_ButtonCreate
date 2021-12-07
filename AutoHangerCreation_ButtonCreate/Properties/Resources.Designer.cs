@@ -63,9 +63,29 @@ namespace AutoHangerCreation_ButtonCreate.Properties {
         /// <summary>
         ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
         /// </summary>
-        internal static System.Drawing.Bitmap pokemon4 {
+        internal static System.Drawing.Bitmap 吊桿長度調整_96DPI_01 {
             get {
-                object obj = ResourceManager.GetObject("pokemon4", resourceCulture);
+                object obj = ResourceManager.GetObject("吊桿長度調整_96DPI_01", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        /// </summary>
+        internal static System.Drawing.Bitmap 單管_多管V2__轉換__01__96dpi {
+            get {
+                object obj = ResourceManager.GetObject("單管_多管V2__轉換__01__96dpi", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        /// </summary>
+        internal static System.Drawing.Bitmap 單管_多管V2__轉換__02__96dpi {
+            get {
+                object obj = ResourceManager.GetObject("單管_多管V2__轉換__02__96dpi", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

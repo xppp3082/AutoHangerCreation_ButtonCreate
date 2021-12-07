@@ -60,9 +60,5 @@ namespace AutoHangerCreation_ButtonCreate
             return;
         }
 
-        private void FamilyListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            this.hangerType_default.Text =FamilyListBox.SelectedItem.ToString();
-        }
     }
 }

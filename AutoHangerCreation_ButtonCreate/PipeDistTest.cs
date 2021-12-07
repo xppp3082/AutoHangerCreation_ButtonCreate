@@ -70,12 +70,7 @@ namespace AutoHangerCreation_ButtonCreate
                 {
                     string pipeDia = pipe.LookupParameter("直徑").AsValueString();
 
-                    //LocationCurve locationCurve = pipe.Location as LocationCurve;
-                    //Curve calCurve = locationCurve.Curve;
-                    //XYZ calStr = calCurve.GetEndPoint(0);
-                    //XYZ calEnd = calCurve.GetEndPoint(1);
-                    //Line calCurveProject = Line.CreateBound(calStr, new XYZ(calEnd.X, calEnd.Y, calStr.Z));
-                    //double angleTest = basePt.AngleTo(calCurveProject.Direction) * (180 / Math.PI);
+
                     string pipeNum = sortElements.IndexOf(pipe).ToString();
                     pipe.LookupParameter("備註").Set(pipeNum);
                     pipeDiameters.Add(pipeDia);
@@ -151,6 +146,11 @@ namespace AutoHangerCreation_ButtonCreate
                     double originOffset = hanger.LookupParameter("偏移").AsDouble();
                     double toMove = sortElements[0].LookupParameter("外徑").AsDouble() / 2;
                     hanger.LookupParameter("偏移").Set(originOffset - toMove);
+
+                    //延伸吊架的牙桿長度
+                    //FamilyInstance hangerinstance = hanger as FamilyInstance;
+                    //double threadLength = CalculateDist_upperLevel(doc, hangerinstance);
+                    //hangerinstance.LookupParameter("管到樓板距離").Set(threadLength);
                 }
                 string total = pointList.Count.ToString();
                 MessageBox.Show("共產生" + total + "個多管吊架");
@@ -178,7 +178,8 @@ namespace AutoHangerCreation_ButtonCreate
                     FamilySymbol familySymbol = e as FamilySymbol;
                     try
                     {
-                        if (familySymbol.Name == "多管吊架_管v10")
+                        //if (familySymbol.Name == "多管吊架_管v12")
+                        if (familySymbol.Name == "M_多管吊架_管附件")
                         {
                             targetFamily = familySymbol;
                         }
@@ -247,6 +248,37 @@ namespace AutoHangerCreation_ButtonCreate
                 sortRefer = calStr.X;
             }
             return sortRefer;
+        }
+
+        private double CalculateDist_upperLevel(Document doc, FamilyInstance hanger)
+        {
+            //利用ReferenceIntersector回傳吊架location point 和上層樓板之間的距離
+
+            //Find a 3D view to use for ReferenceIntersector constructor
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            View3D view3D = collector.OfClass(typeof(View3D)).Cast<View3D>().First<View3D>();
+
+            //Find the locationiPoint of Hanger as the start point
+            LocationPoint hangerLocation = hanger.Location as LocationPoint;
+            XYZ startLocation = hangerLocation.Point;
+
+            //Project in the positive Z direction on to the floor
+            XYZ rayDirectioin = new XYZ(0, 0, 1);
+
+            ElementClassFilter filter = new ElementClassFilter(typeof(Floor));
+
+            ReferenceIntersector referenceIntersector = new ReferenceIntersector(filter, FindReferenceTarget.Face, view3D);
+
+            //FindReferencesInRevitLinks=true 打開對於外參的測量
+            referenceIntersector.FindReferencesInRevitLinks = true;
+            ReferenceWithContext referenceWithContext = referenceIntersector.FindNearest(startLocation, rayDirectioin);
+
+            Reference reference = referenceWithContext.GetReference();
+            XYZ intersection = reference.GlobalPoint;
+
+            double dist = startLocation.DistanceTo(intersection);
+
+            return dist;
         }
     }
 }

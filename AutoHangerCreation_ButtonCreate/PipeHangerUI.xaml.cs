@@ -12,6 +12,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 
 namespace AutoHangerCreation_ButtonCreate
 {
@@ -20,9 +27,37 @@ namespace AutoHangerCreation_ButtonCreate
     /// </summary>
     public partial class PipeHangerUI : Window
     {
-        public PipeHangerUI()
+        private UIApplication uiapp;
+        private UIDocument uidoc;
+        private Autodesk.Revit.ApplicationServices.Application app;
+        private Document doc;
+        public string divideValue;
+        public PipeHangerUI(ExternalCommandData commandData)
         {
             InitializeComponent();
+            uiapp = commandData.Application;
+            uidoc = uiapp.ActiveUIDocument;
+            app = uiapp.Application;
+            doc = uidoc.Document;
+            //FamilyListBox.Items.Add(hangerType.Name);
+
+        }
+
+        private void ContinueButton_Click(object sender, RoutedEventArgs e)
+        {
+            divideValue = divideValueBox.Text;
+            Debug.WriteLine("Ok button was clicked.");
+            Close();
+
+            return;
+
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("Cancel button was clicked"); //呼叫debug必須要引用using System.Diagnostics;
+            Close();
+            return;
         }
     }
 }

@@ -56,7 +56,7 @@
 
             <!--Description-->
             <TextBlock Text="請選擇欲放置的族群類型"  FontSize="12"/>
-            <ComboBox x:Name="FamilyListBox" SelectedIndex="0" Padding="5" SelectionChanged="FamilyListBox_SelectionChanged">
+            <ComboBox x:Name="FamilyListBox" SelectedIndex="0" Padding="5" >
                 <ComboBoxItem>Test1</ComboBoxItem>
                 <ComboBoxItem>Test2</ComboBoxItem>
             </ComboBox>
