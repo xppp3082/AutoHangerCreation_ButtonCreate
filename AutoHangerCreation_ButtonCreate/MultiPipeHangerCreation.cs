@@ -12,7 +12,7 @@ using System.Linq;
 namespace AutoHangerCreation_ButtonCreate
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
-    public class PipeDistTest : IExternalCommand
+    public class MultiPipeHangerCreation : IExternalCommand
     {
         //放置多管吊架
         DisplayUnitType unitType = DisplayUnitType.DUT_MILLIMETERS;
@@ -142,7 +142,7 @@ namespace AutoHangerCreation_ButtonCreate
                     {
                         hanger.LookupParameter($"管間距0{i + 1}").Set(pipeDist[i]);
                     }
-                    //做最後的調製，以第一個管為依據，將多管吊架對應至管底
+                    //做最後的調整，以第一個管為依據，將多管吊架對應至管底
                     double originOffset = hanger.LookupParameter("偏移").AsDouble();
                     double toMove = sortElements[0].LookupParameter("外徑").AsDouble() / 2;
                     hanger.LookupParameter("偏移").Set(originOffset - toMove);
@@ -155,13 +155,12 @@ namespace AutoHangerCreation_ButtonCreate
                 string total = pointList.Count.ToString();
                 MessageBox.Show("共產生" + total + "個多管吊架");
                 trans.Commit();
-                return Result.Succeeded;
             }
             catch
             {
-                //message = "運行中的程序已取消!";
                 return Result.Failed;
             }
+            return Result.Succeeded;
         }
         class MultiPipeHanger
         {
@@ -250,35 +249,6 @@ namespace AutoHangerCreation_ButtonCreate
             return sortRefer;
         }
 
-        private double CalculateDist_upperLevel(Document doc, FamilyInstance hanger)
-        {
-            //利用ReferenceIntersector回傳吊架location point 和上層樓板之間的距離
 
-            //Find a 3D view to use for ReferenceIntersector constructor
-            FilteredElementCollector collector = new FilteredElementCollector(doc);
-            View3D view3D = collector.OfClass(typeof(View3D)).Cast<View3D>().First<View3D>();
-
-            //Find the locationiPoint of Hanger as the start point
-            LocationPoint hangerLocation = hanger.Location as LocationPoint;
-            XYZ startLocation = hangerLocation.Point;
-
-            //Project in the positive Z direction on to the floor
-            XYZ rayDirectioin = new XYZ(0, 0, 1);
-
-            ElementClassFilter filter = new ElementClassFilter(typeof(Floor));
-
-            ReferenceIntersector referenceIntersector = new ReferenceIntersector(filter, FindReferenceTarget.Face, view3D);
-
-            //FindReferencesInRevitLinks=true 打開對於外參的測量
-            referenceIntersector.FindReferencesInRevitLinks = true;
-            ReferenceWithContext referenceWithContext = referenceIntersector.FindNearest(startLocation, rayDirectioin);
-
-            Reference reference = referenceWithContext.GetReference();
-            XYZ intersection = reference.GlobalPoint;
-
-            double dist = startLocation.DistanceTo(intersection);
-
-            return dist;
-        }
     }
 }

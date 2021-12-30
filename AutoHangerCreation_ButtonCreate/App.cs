@@ -88,7 +88,7 @@ namespace AutoHangerCreation_ButtonCreate
                 btnData2.LargeImage = imgSrc2;
             }
 
-            PushButtonData btnData3 = new PushButtonData("MyButton_Multi", "調整\n   螺桿長度   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.HangerToFloorDist");
+            PushButtonData btnData3 = new PushButtonData("MyButton_ThreadAdjust", "調整\n   螺桿長度   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.HangerToFloorDist");
             {
                 btnData3.ToolTip = "點選需要調整的吊架";
                 btnData3.LongDescription = "點選需要調整的吊架，調整螺桿長度連接至外參建築樓板";

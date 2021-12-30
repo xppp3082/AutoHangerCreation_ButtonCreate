@@ -16,35 +16,51 @@ namespace AutoHangerCreation_ButtonCreate
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIDocument uidoc = commandData.Application.ActiveUIDocument;
-            Autodesk.Revit.UI.Selection.ISelectionFilter pipeAccess_Filter = new PipeAccessoryFilter();
-
-            //點選要更改牙桿長度的吊架
-            List<Element> pickAccessory = new List<Element>();
-            Document doc = uidoc.Document;
-            IList<Reference> pickAccessory_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeAccess_Filter, $"請選整欲調整牙桿長度的吊架");
-
-            foreach (Reference reference in pickAccessory_Refer)
+            try
             {
-                Element element = doc.GetElement(reference.ElementId);
-                pickAccessory.Add(element);
+                UIDocument uidoc = commandData.Application.ActiveUIDocument;
+                Autodesk.Revit.UI.Selection.ISelectionFilter pipeAccess_Filter = new PipeAccessoryFilter();
+
+                //點選要更改牙桿長度的吊架
+                List<Element> pickAccessory = new List<Element>();
+                Document doc = uidoc.Document;
+                IList<Reference> pickAccessory_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeAccess_Filter, $"請選整欲調整牙桿長度的吊架");
+
+                foreach (Reference reference in pickAccessory_Refer)
+                {
+                    Element element = doc.GetElement(reference.ElementId);
+                    pickAccessory.Add(element);
+                }
+
+                //ICollection<ElementId> ids = uidoc.Selection.GetElementIds();
+                //ICollection<Element> elementList = new List<Element>();
+
+                Transaction trans = new Transaction(doc);
+                trans.Start("調整螺牙長度");
+                //將選到的物件寫進iList中
+                try
+                {
+                    foreach (Element elem in pickAccessory)
+                    {
+                        FamilyInstance instance = elem as FamilyInstance;
+                        double threadLength = CalculateDist_upperLevel(doc, instance);
+                        instance.LookupParameter("管到樓板距離").Set(threadLength);
+                    }
+
+                    trans.Commit();
+                    MessageBox.Show("螺桿長度調整完畢!");
+                }
+                catch
+                {
+                    MessageBox.Show("請檢查是否有選到上方沒有樓板的吊架!!");
+                    trans.RollBack();
+                    return Result.Failed;
+                }
             }
-
-            //ICollection<ElementId> ids = uidoc.Selection.GetElementIds();
-            //ICollection<Element> elementList = new List<Element>();
-
-            Transaction trans = new Transaction(doc);
-            trans.Start("調整螺牙長度");
-            //將選到的物件寫進iList中
-            foreach (Element elem in pickAccessory)
+            catch
             {
-                FamilyInstance instance = elem as FamilyInstance;
-                double threadLength = CalculateDist_upperLevel(doc, instance);
-                instance.LookupParameter("管到樓板距離").Set(threadLength);
+                return Result.Failed;
             }
-
-            trans.Commit();
-            MessageBox.Show("螺桿長度調整完畢!");
             return Result.Succeeded;
         }
 

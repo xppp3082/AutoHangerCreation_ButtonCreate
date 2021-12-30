@@ -105,7 +105,6 @@ namespace AutoHangerCreation_ButtonCreate
 
                     }
 
-
                     foreach (XYZ p1 in locationList)
                     {
                         Element hanger = CreateHanger(uidoc.Document, p1, element, hangerType);
@@ -130,12 +129,12 @@ namespace AutoHangerCreation_ButtonCreate
 
                 MessageBox.Show("共產生" + hangerCount.ToString() + "個吊架");
                 trans.Commit();
-                return Result.Succeeded;
             }
             catch
             {
                 return Result.Failed;
             }
+            return Result.Succeeded;
         }
 
 
@@ -215,36 +214,6 @@ namespace AutoHangerCreation_ButtonCreate
             return instance;
         }
 
-        private double CalculateDist_upperLevel(Document doc, FamilyInstance hanger)
-        {
-            //利用ReferenceIntersector回傳吊架location point 和上層樓板之間的距離
-
-            //Find a 3D view to use for ReferenceIntersector constructor
-            FilteredElementCollector collector = new FilteredElementCollector(doc);
-            View3D view3D = collector.OfClass(typeof(View3D)).Cast<View3D>().First<View3D>();
-
-            //Find the locationiPoint of Hanger as the start point
-            LocationPoint hangerLocation = hanger.Location as LocationPoint;
-            XYZ startLocation = hangerLocation.Point;
-
-            //Project in the positive Z direction on to the floor
-            XYZ rayDirectioin = new XYZ(0, 0, 1);
-
-            ElementClassFilter filter = new ElementClassFilter(typeof(Floor));
-
-            ReferenceIntersector referenceIntersector = new ReferenceIntersector(filter, FindReferenceTarget.Face, view3D);
-
-            //FindReferencesInRevitLinks=true 打開對於外參的測量
-            referenceIntersector.FindReferencesInRevitLinks = true;
-            ReferenceWithContext referenceWithContext = referenceIntersector.FindNearest(startLocation, rayDirectioin);
-
-            Reference reference = referenceWithContext.GetReference();
-            XYZ intersection = reference.GlobalPoint;
-
-            double dist = startLocation.DistanceTo(intersection);
-
-            return dist;
-        }
         public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
         {
             public bool AllowElement(Element element)
