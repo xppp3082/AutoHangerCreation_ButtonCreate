@@ -73,7 +73,7 @@ namespace AutoHangerCreation_ButtonCreate
                 "MyButton_Single",
                 "創建\n   單管吊架   ",
                 Assembly.GetExecutingAssembly().Location,
-                "AutoHangerCreation_ButtonCreate.HangerCreation"//按鈕的全名-->要依照需要參照的command打入
+                "AutoHangerCreation_ButtonCreate.PipeHangerCreationV2"//按鈕的全名-->要依照需要參照的command打入
                 );
             {
                 btnData.ToolTip = "點選管段創建單管吊架";
@@ -81,7 +81,7 @@ namespace AutoHangerCreation_ButtonCreate
                 btnData.LargeImage = imgSrc;
             };
 
-            PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.PipeDistTest");
+            PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.MultiPipeHangerCreation");
             {
                 btnData2.ToolTip = "點選管段創建多管吊架";
                 btnData2.LongDescription = "點選需要創建的管段，生成多管吊架，單次最多選擇八支管";

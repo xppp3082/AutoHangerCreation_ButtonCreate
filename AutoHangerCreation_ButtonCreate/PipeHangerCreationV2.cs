@@ -101,7 +101,7 @@ namespace AutoHangerCreation_ButtonCreate
                             Line Axis = Line.CreateBound(centerPt, centerPt_up);
                             Element hanger = new pipeHanger().CreateHanger(uidoc.Document,centerPt, element, familySymbol);
                             degrees = rotateBase.AngleTo(pipelineProject.Direction);
-                            hanger.Location.Rotate(Axis, half_PI-degrees);
+                            hanger.Location.Rotate(Axis, Math.Abs(half_PI - degrees));
                         }
                         else if (step > 2)
                         {
@@ -128,7 +128,7 @@ namespace AutoHangerCreation_ButtonCreate
                                 degrees = p3.AngleTo(pipelineProject.Direction);
 
                                 //旋轉後校正位置
-                                hanger.Location.Rotate(Axis, half_PI - degrees);
+                                hanger.Location.Rotate(Axis, Math.Abs( half_PI - degrees));
                             }
                         }
                     }
@@ -137,6 +137,7 @@ namespace AutoHangerCreation_ButtonCreate
             }
             catch
             {
+                MessageBox.Show("執行失敗");
                 return Result.Failed;
             }
             return Result.Succeeded;
