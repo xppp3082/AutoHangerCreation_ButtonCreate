@@ -54,8 +54,9 @@ namespace AutoHangerCreation_ButtonCreate
                 //英制轉公制
                 double divideValue_doubleTemp = double.Parse(divideValueString);
                 double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
-
                 int hangerCount = 0;
+
+
 
                 Transaction trans = new Transaction(doc);
                 trans.Start("放置單管吊架測試");
@@ -214,7 +215,9 @@ namespace AutoHangerCreation_ButtonCreate
             return instance;
         }
 
-        public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
+    
+
+    public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
         {
             public bool AllowElement(Element element)
             {
