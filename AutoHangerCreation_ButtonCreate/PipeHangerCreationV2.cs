@@ -48,7 +48,7 @@ namespace AutoHangerCreation_ButtonCreate
                 //英制轉公制
                 double divideValue_doubleTemp = double.Parse(divideValueString);
                 double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
-                int hangerCount = 0;
+                //int hangerCount = 0;
 
 
                 //載入元件檔
@@ -101,9 +101,20 @@ namespace AutoHangerCreation_ButtonCreate
                             Line Axis = Line.CreateBound(centerPt, centerPt_up);
                             Element hanger = new pipeHanger().CreateHanger(uidoc.Document,centerPt, element, familySymbol);
                             degrees = rotateBase.AngleTo(pipelineProject.Direction);
-                            hanger.Location.Rotate(Axis, Math.Abs(half_PI - degrees));
+                            double a = degrees * 180 / (Math.PI);
+                            double finalRotate = Math.Abs(half_PI - degrees);
+                            if (a > 135)
+                            {
+                                finalRotate = -finalRotate;
+                            }
+                            else
+                            {
+                                finalRotate = finalRotate;
+                            }
+                            //旋轉後校正位置
+                            hanger.Location.Rotate(Axis, finalRotate);
                         }
-                        else if (step > 2)
+                        else if (step >= 2)
                         {
                             for (int i = 0; i < step; i++)
                             {
@@ -126,9 +137,18 @@ namespace AutoHangerCreation_ButtonCreate
                                 Line Axis = Line.CreateBound(p1, p2);
                                 XYZ p3 = new XYZ(0, p1.X, 0); //測量吊架與管段之間的向量差異，取plane中的x向量
                                 degrees = p3.AngleTo(pipelineProject.Direction);
-
+                                double a = degrees * 180/(Math.PI);
+                                double finalRotate = Math.Abs(half_PI - degrees);
+                                if (a > 135)
+                                {
+                                    finalRotate = -finalRotate;
+                                }
+                                else
+                                {
+                                    finalRotate = finalRotate;
+                                }
                                 //旋轉後校正位置
-                                hanger.Location.Rotate(Axis, Math.Abs( half_PI - degrees));
+                                hanger.Location.Rotate(Axis, finalRotate);
                             }
                         }
                     }
@@ -324,9 +344,6 @@ namespace AutoHangerCreation_ButtonCreate
                 return instance;
             }
         }
-
-
-
         public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
         {
             public bool AllowElement(Element element)

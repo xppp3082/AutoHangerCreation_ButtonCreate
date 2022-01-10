@@ -44,7 +44,7 @@ namespace AutoHangerCreation_ButtonCreate
                     {
                         FamilyInstance instance = elem as FamilyInstance;
                         double threadLength = CalculateDist_upperLevel(doc, instance);
-                        instance.LookupParameter("管到樓板距離").Set(threadLength);
+                        instance.LookupParameter("PipeCenterToFloor").Set(threadLength);
                     }
 
                     trans.Commit();
@@ -52,7 +52,7 @@ namespace AutoHangerCreation_ButtonCreate
                 }
                 catch
                 {
-                    MessageBox.Show("請檢查是否有選到上方沒有樓板的吊架!!");
+                    MessageBox.Show("請檢查是否有選到上方沒有樓板或存在樑中的吊架!!");
                     trans.RollBack();
                     return Result.Failed;
                 }
@@ -72,6 +72,7 @@ namespace AutoHangerCreation_ButtonCreate
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             Func<View3D, bool> isNotTemplate = v3 => !(v3.IsTemplate);
             View3D view3D = collector.OfClass(typeof(View3D)).Cast<View3D>().First<View3D>(isNotTemplate);
+            View3D tempView = (View3D)doc.ActiveView;
 
             //Find the locationiPoint of Hanger as the start point
             LocationPoint hangerLocation = hanger.Location as LocationPoint;
@@ -79,9 +80,7 @@ namespace AutoHangerCreation_ButtonCreate
 
             //Project in the positive Z direction on to the floor
             XYZ rayDirectioin = new XYZ(0, 0, 1);
-
             ElementClassFilter filter = new ElementClassFilter(typeof(Floor));
-
             ReferenceIntersector referenceIntersector = new ReferenceIntersector(filter, FindReferenceTarget.Face, view3D);
 
             //FindReferencesInRevitLinks=true 打開對於外參的測量
