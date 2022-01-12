@@ -53,11 +53,11 @@ namespace AutoHangerCreation_ButtonCreate
             }
 
             // get the image for the button(放置單管吊架)
-            System.Drawing.Image image_Single = Properties.Resources.單管_多管V2__轉換__02__96dpi;
+            System.Drawing.Image image_Single =Properties.Resources.單管_多管V2__轉換__02__96dpi;
             ImageSource imgSrc = GetImageSource(image_Single);
 
             //get the image for the button(放置多管吊架)
-            System.Drawing.Image image_Multi = Properties.Resources.單管_多管V2__轉換__01__96dpi;
+            System.Drawing.Image image_Multi =Properties.Resources.單管_多管V2__轉換__01__96dpi;
             ImageSource imgSrc2 = GetImageSource(image_Multi);
 
             //get the image for the button(調整吊架螺桿)

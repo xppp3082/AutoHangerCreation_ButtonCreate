@@ -50,7 +50,6 @@ namespace AutoHangerCreation_ButtonCreate
                 double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
                 //int hangerCount = 0;
 
-
                 //載入元件檔
                 using (Transaction tx = new Transaction(doc))
                 {
@@ -203,11 +202,20 @@ namespace AutoHangerCreation_ButtonCreate
                 //如果沒有找到，則自己加載
                 //如果管徑較小，載入雙層管束
                 //如果管徑較大，載入單管角鐵雙面孔吊架
+                
+                //先找到安裝於電腦上的DropBox路徑
+                var infoPath = @"Dropbox\info.json";
+                var jsonPath = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), infoPath);
+                if (!File.Exists(jsonPath)) jsonPath = Path.Combine(Environment.GetEnvironmentVariable("AppData"), infoPath);
+                if (!File.Exists(jsonPath)) throw new Exception("請安裝並登入Dropbox桌面應用程式!");
+                var dropboxPath = File.ReadAllText(jsonPath).Split('\"')[5].Replace(@"\\", @"\");
+
                 if (!symbolFound && decimalDiameter <= 105)
                 {
-                    string filePath = @"D:\Dropbox (CHC Group)\BIM\05 Common 共通\Revit元件資料庫\機電元件_202110\00 通用(M)\M_雙層管束_管附件.rfa";
+                    string filePath = @"\BIM\05 Common 共通\Revit元件資料庫\機電元件_202110\00 通用(M)\管吊架\M_雙層管束_管附件.rfa";
+                    string output = dropboxPath + filePath;
                     Family targetFamily;
-                    bool loadSuccess = doc.LoadFamily(filePath, out targetFamily);
+                    bool loadSuccess = doc.LoadFamily(output, out targetFamily);
                     if (loadSuccess)
                     {
                         hangerType = targetFamily;
@@ -219,9 +227,10 @@ namespace AutoHangerCreation_ButtonCreate
                 }
                 else if (!symbolFound && decimalDiameter >= 120)
                 {
-                    string filePath = @"D:\Dropbox (CHC Group)\BIM\05 Common 共通\Revit元件資料庫\機電元件_202110\00 通用(M)\M_單管角鐵雙面孔吊架_管附件.rfa";
+                    string filePath = @"\BIM\05 Common 共通\Revit元件資料庫\機電元件_202110\00 通用(M)\管吊架\M_單管角鐵雙面孔吊架_管附件.rfa";
+                    string output = dropboxPath + filePath;
                     Family targetFamily;
-                    bool loadSuccess = doc.LoadFamily(filePath, out targetFamily);
+                    bool loadSuccess = doc.LoadFamily(output, out targetFamily);
                     if (loadSuccess)
                     {
                         hangerType = targetFamily;

@@ -81,7 +81,7 @@ namespace AutoHangerCreation_ButtonCreate
             //Project in the positive Z direction on to the floor
             XYZ rayDirectioin = new XYZ(0, 0, 1);
             ElementClassFilter filter = new ElementClassFilter(typeof(Floor));
-            ReferenceIntersector referenceIntersector = new ReferenceIntersector(filter, FindReferenceTarget.Face, view3D);
+            ReferenceIntersector referenceIntersector = new ReferenceIntersector(filter, FindReferenceTarget.Face, tempView);
 
             //FindReferencesInRevitLinks=true 打開對於外參的測量
             referenceIntersector.FindReferencesInRevitLinks = true;
