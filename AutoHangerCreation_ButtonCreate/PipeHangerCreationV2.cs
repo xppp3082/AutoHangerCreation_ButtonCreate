@@ -31,6 +31,7 @@ namespace AutoHangerCreation_ButtonCreate
                 Document doc = uidoc.Document;
                 IList<Reference> pickElements_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段");
 
+
                 foreach (Reference reference in pickElements_Refer)
                 {
                     Element element = doc.GetElement(reference.ElementId);

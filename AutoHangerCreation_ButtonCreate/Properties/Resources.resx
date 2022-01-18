@@ -127,4 +127,7 @@
   <data name="單管_多管V2__轉換__02__96dpi" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\單管&amp;多管V2 [轉換]-02).96dpi.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="單管吊架設定_32pix" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\單管吊架設定-32pix.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

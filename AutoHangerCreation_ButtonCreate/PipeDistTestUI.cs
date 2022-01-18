@@ -36,7 +36,6 @@ namespace AutoHangerCreation_ButtonCreate
         public PipeDistTestUI(ExternalCommandData commandData,FamilySymbol hangerType)
         {
             InitializeComponent();
-
             uiapp = commandData.Application;
             uidoc = uiapp.ActiveUIDocument;
             app = uiapp.Application;

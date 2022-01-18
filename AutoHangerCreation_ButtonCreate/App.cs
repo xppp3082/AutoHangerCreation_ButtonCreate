@@ -64,6 +64,10 @@ namespace AutoHangerCreation_ButtonCreate
             System.Drawing.Image image_Adjust = Properties.Resources.吊桿長度調整_96DPI_01;
             ImageSource imgSrc3 = GetImageSource(image_Adjust);
 
+            //get the image for the button(設定單管吊架)
+            System.Drawing.Image image_SetUp = Properties.Resources.單管吊架設定_32pix;
+            ImageSource imgSrc4 = GetImageSource(image_SetUp);
+
             //第三種做Button按鈕圖片的方法，參考官網對於button製作的描述
             //Uri uriImage = new Uri(@"D:\Dropbox (CHC Group)\工作人生\組內專案\02.Revit API開發\01.自動放置吊架\ICON\單管&多管V2 [轉換]-01).96dpi.png");
             //BitmapImage largeImage = new BitmapImage(uriImage);
@@ -73,7 +77,7 @@ namespace AutoHangerCreation_ButtonCreate
                 "MyButton_Single",
                 "創建\n   單管吊架   ",
                 Assembly.GetExecutingAssembly().Location,
-                "AutoHangerCreation_ButtonCreate.PipeHangerCreationV2"//按鈕的全名-->要依照需要參照的command打入
+                "AutoHangerCreation_ButtonCreate.PipeHangerCreationV3"//按鈕的全名-->要依照需要參照的command打入
                 );
             {
                 btnData.ToolTip = "點選管段創建單管吊架";
@@ -95,15 +99,24 @@ namespace AutoHangerCreation_ButtonCreate
                 btnData3.LargeImage = imgSrc3;
             }
 
+            PushButtonData btnData4 = new PushButtonData("MyButton_SetUp", "設定\n   單管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.PipeHangerSetUp");
+            {
+                btnData4.ToolTip = "設定吊架類型與間距";
+                btnData4.LongDescription = "設定自動放置單管吊架所需的吊架類型與間距，設定後才能使用單管吊架功能";
+                btnData4.LargeImage = imgSrc4;
+            }
+
             //add the button to the ribbon
             PushButton button = panel.AddItem(btnData) as PushButton;
             PushButton button2 = panel.AddItem(btnData2) as PushButton;
             PushButton button3 = panel.AddItem(btnData3) as PushButton;
+            PushButton button4 = panel.AddItem(btnData4) as PushButton;
 
             //做完的button記得要Enable
             button.Enabled = true;
             button2.Enabled = true;
             button3.Enabled = true;
+            button4.Enabled = true;
             panel.AddSeparator();
 
             return Result.Succeeded;

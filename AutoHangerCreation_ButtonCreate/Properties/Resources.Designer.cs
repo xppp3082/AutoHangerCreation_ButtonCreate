@@ -89,5 +89,15 @@ namespace AutoHangerCreation_ButtonCreate.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        /// </summary>
+        internal static System.Drawing.Bitmap 單管吊架設定_32pix {
+            get {
+                object obj = ResourceManager.GetObject("單管吊架設定_32pix", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
