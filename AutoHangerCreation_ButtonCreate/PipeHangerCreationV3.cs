@@ -171,7 +171,7 @@ namespace AutoHangerCreation_ButtonCreate
             }
             catch
             {
-                //MessageBox.Show("執行失敗");
+                MessageBox.Show("執行失敗");
                 return Result.Failed;
             }
             return Result.Succeeded;
@@ -207,10 +207,17 @@ namespace AutoHangerCreation_ButtonCreate
                     foreach (ElementId hangId in tagerFamily.GetFamilySymbolIds())
                     {
                         FamilySymbol tempSymbol = doc.GetElement(hangId) as FamilySymbol;
-                        double hangerDiameter = tempSymbol.LookupParameter("標稱直徑").AsDouble(); //利用標稱直徑的參數作為判斷依據
-                        if (hangerDiameter == pipeDiameter)
+                        if (targetFamilyName == "M_光纖纜架_管附件")
                         {
                             targetSymbol = tempSymbol;
+                        }
+                        else
+                        {
+                            double hangerDiameter = tempSymbol.LookupParameter("標稱直徑").AsDouble(); //利用標稱直徑的參數作為判斷依據
+                            if (hangerDiameter == pipeDiameter)
+                            {
+                                targetSymbol = tempSymbol;
+                            }
                         }
                     }
                     if (targetSymbol == null)

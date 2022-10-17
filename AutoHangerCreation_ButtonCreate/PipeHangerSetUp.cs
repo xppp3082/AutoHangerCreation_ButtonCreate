@@ -56,28 +56,38 @@ namespace AutoHangerCreation_ButtonCreate
     {
         public List<string> getAllHangerNames(Document doc)
         {
-            string[] hangerNames =
-            {
-                "M_雙層管束_管附件",
-                "M_葫蘆管束_管附件",
-                "M_單管角鐵雙面孔吊架_管附件",
-                "M_吊式PU保溫管墊吊架_管附件",
-                "M_子母吊架_管附件",
-                "M_UB束帶_管附件"
-            };
+            string paraName = "API識別名稱";
+            string targetName = "吊架";
+            //string[] hangerNames =
+            //{
+            //    "M_雙層管束_管附件",
+            //    "M_葫蘆管束_管附件",
+            //    "M_單管角鐵雙面孔吊架_管附件",
+            //    "M_吊式PU保溫管墊吊架_管附件",
+            //    "M_子母吊架_管附件",
+            //    "M_UB束帶_管附件"
+            //};
             List<string> hangerTypes = new List<string>();
-            ElementFilter CategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_PipeAccessory);
-            ElementFilter FamilyFilter = new ElementClassFilter(typeof(Family));
-            LogicalAndFilter andFilter = new LogicalAndFilter(CategoryFilter, FamilyFilter);
+            //ElementFilter CategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_PipeAccessory);
+            //ElementFilter FamilyFilter = new ElementClassFilter(typeof(Family));
+            ElementFilter SymbolFilter = new ElementClassFilter(typeof(FamilySymbol));
+            //LogicalAndFilter andFilter = new LogicalAndFilter(CategoryFilter, FamilyFilter);
             FilteredElementCollector hangerCollector = new FilteredElementCollector(doc)/*.OfCategory(BuiltInCategory.OST_PipeAccessory).OfClass(typeof(Family))*/;
-            hangerCollector.WherePasses(FamilyFilter).ToElements();
+            hangerCollector.WherePasses(SymbolFilter).ToElements();
             foreach (Element e in hangerCollector)
             {
-                Family tempFamily = e as Family;
-                if (hangerNames.Contains(tempFamily.Name))
+                //Family tempFamily = e as Family;
+                FamilySymbol tempSymbol = e as FamilySymbol;
+                Parameter targetPara = tempSymbol.LookupParameter(paraName);
+                if (targetPara != null && targetPara.AsValueString().Contains(targetName)&&!hangerTypes.Contains(tempSymbol.Family.Name))
                 {
-                    hangerTypes.Add(tempFamily.Name);
+                    hangerTypes.Add(tempSymbol.Family.Name);
+                    continue;
                 }
+                //if (hangerNames.Contains(tempFamily.Name))
+                //{
+                //    hangerTypes.Add(tempFamily.Name);
+                //}
             }
             return hangerTypes;
         }
