@@ -17,7 +17,12 @@ namespace AutoHangerCreation_ButtonCreate
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     public class PipeHangerCreationV3 : IExternalCommand
     {
-        DisplayUnitType unitType = DisplayUnitType.DUT_MILLIMETERS;
+#if RELEASE2019
+        public static DisplayUnitType unitType = DisplayUnitType.DUT_CENTIMETERS;
+#else
+        public static ForgeTypeId unitType = UnitTypeId.Centimeters;
+#endif
+        //DisplayUnitType unitType = DisplayUnitType.DUT_CENTIMETERS;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             try
@@ -30,7 +35,6 @@ namespace AutoHangerCreation_ButtonCreate
                 List<Element> pickElements = new List<Element>();
                 Document doc = uidoc.Document;
                 IList<Reference> pickElements_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段");
-
 
                 foreach (Reference reference in pickElements_Refer)
                 {
@@ -46,7 +50,7 @@ namespace AutoHangerCreation_ButtonCreate
                     return Result.Failed;
                 }
 
-                //英制轉公制
+                //文字轉數字，英制轉公制
                 double divideValue_doubleTemp = double.Parse(divideValueString);
                 double divideValue_double = UnitUtils.ConvertToInternalUnits(divideValue_doubleTemp, unitType);
                 if (divideValue_double == 0)
@@ -55,16 +59,34 @@ namespace AutoHangerCreation_ButtonCreate
                     return Result.Failed;
                 }
                 //int hangerCount = 0;
-
                 //放置吊架
                 using (Transaction tx = new Transaction(doc))
                 {
                     tx.Start("放置單管吊架");
                     foreach (Element element in pickElements)
                     {
-                        double pipeDia = element.LookupParameter("直徑").AsDouble();
-                        FamilySymbol targetSymbol = new pipeHanger().getFamilySymbol(doc, pipeDia);
+                        //先設定一個用來存放目標參數的Para
+                        Parameter targetPara = null;
+                        switch (element.Category.Name)
+                        {
+                            case "管":
+                                targetPara = element.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM);
+                                break;
+                            case "電管":
+                                targetPara = element.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                                break;
+                            case "風管":
+                                targetPara = element.get_Parameter(BuiltInParameter.RBS_CURVE_DIAMETER_PARAM);
+                                break;
+                        }
 
+                        if (targetPara == null)
+                        {
+                            MessageBox.Show("目前還暫不適用方形管件，請待後續更新");
+                            continue;
+                        }
+                        double pipeDia = targetPara.AsDouble();
+                        FamilySymbol targetSymbol = new pipeHanger().getFamilySymbol(doc, pipeDia);
 
                         //找到管的location curve
                         LocationCurve pipeLocationCrv = element.Location as LocationCurve;
@@ -104,7 +126,7 @@ namespace AutoHangerCreation_ButtonCreate
                             degrees = rotateBase.AngleTo(pipelineProject.Direction);
                             double a = degrees * 180 / (Math.PI);
                             double finalRotate = Math.Abs(half_PI - degrees);
-                            if (a > 135 || a<45)
+                            if (a > 135 || a < 45)
                             {
                                 finalRotate = -finalRotate;
                             }
@@ -135,7 +157,7 @@ namespace AutoHangerCreation_ButtonCreate
                                 degrees = p3.AngleTo(pipelineProject.Direction);
                                 double a = degrees * 180 / (Math.PI);
                                 double finalRotate = Math.Abs(half_PI - degrees);
-                                if (a >135 || a<45)
+                                if (a > 135 || a < 45)
                                 {
                                     finalRotate = -finalRotate;
                                 }
@@ -205,17 +227,18 @@ namespace AutoHangerCreation_ButtonCreate
                 if (targetFamily != null)
                 {
                     targetFamily.Activate();
-
                     if (null != targetFamily)
                     {
                         MEPCurve pipCrv = element as MEPCurve; //選取管件，一定可以轉型MEPCurve
                         Level HangLevel = pipCrv.ReferenceLevel;
-
-                        double moveDown = HangLevel.Elevation; //取得該層樓高層
-
+                        double moveDown = HangLevel.ProjectElevation; //取得該層樓高層
                         instance = doc.Create.NewFamilyInstance(location, targetFamily, HangLevel, StructuralType.NonStructural); //一定要宣告structural 類型? yes
-                        double toMove = (instance.LookupParameter("偏移").AsDouble()) - moveDown;
-                        instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM).Set(toMove); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
+                        double toMove2 = location.Z - moveDown;
+#if RELEASE2019
+ instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
+#else
+                        instance.get_Parameter(BuiltInParameter.INSTANCE_ELEVATION_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
+#endif
                     }
                 }
                 return instance;
@@ -225,7 +248,7 @@ namespace AutoHangerCreation_ButtonCreate
         {
             public bool AllowElement(Element element)
             {
-                if (element.Category.Name == "管")
+                if (element.Category.Name == "管" || element.Category.Name == "電管" || element.Category.Name == "風管")
                 {
                     return true;
                 }

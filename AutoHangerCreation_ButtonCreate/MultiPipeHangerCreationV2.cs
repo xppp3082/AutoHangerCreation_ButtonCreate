@@ -12,7 +12,7 @@ using System.Linq;
 namespace AutoHangerCreation_ButtonCreate
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
-    public class MultiPipeHangerCreation : IExternalCommand
+    public class MultiPipeHangerCreationV2 : IExternalCommand
     {
         //放置多管吊架
 #if RELEASE2019
@@ -22,6 +22,11 @@ namespace AutoHangerCreation_ButtonCreate
 #endif
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            //放置多管吊架功能要做到下列幾點：
+            //1.先點選第一支管
+            //2.點選第一隻管外的其他管
+            //3.
+            //4.
             try
             {
                 UIDocument uidoc = commandData.Application.ActiveUIDocument;
@@ -38,12 +43,23 @@ namespace AutoHangerCreation_ButtonCreate
                     pickElements.Add(element);
                 }
 
+
                 //開始放置吊架
                 using (Transaction trans = new Transaction(doc))
                 {
                     trans.Start("放置多管吊架");
 
                     List<Element> sortElements = pickElements.OrderBy(x => sortPIpeByRefer(x)).ToList();
+
+                    string output = "";
+                    for (int i = 0; i < sortElements.Count(); i++)
+                    {
+                        string tempDIa = sortElements[i].LookupParameter("直徑").AsValueString();
+                        string tempLength = sortElements[i].LookupParameter("長度").AsValueString();
+                        output += $"我是第{i}隻管，我的長度是{tempLength}，我的管徑是{tempDIa}\n";
+                    }
+                    MessageBox.Show(output);
+
                     StringBuilder st = new StringBuilder();
                     List<double> pipeDist = new List<double>();
 
@@ -71,16 +87,15 @@ namespace AutoHangerCreation_ButtonCreate
                     XYZ basePt = new XYZ(0, 1, 0);
                     List<double> pipeAngle = new List<double>();
 
-                    foreach (Element pipe in sortElements)
-                    {
-                        string pipeDia = pipe.LookupParameter("直徑").AsValueString();
-
-
-                        string pipeNum = sortElements.IndexOf(pipe).ToString();
-                        pipe.LookupParameter("備註").Set(pipeNum);
-                        pipeDiameters.Add(pipeDia);
-                        st.AppendLine(pipeDia.ToString());
-                    }
+                    ////檢查用
+                    //foreach (Element pipe in sortElements)
+                    //{
+                    //    string pipeDia = pipe.LookupParameter("直徑").AsValueString();
+                    //    string pipeNum = sortElements.IndexOf(pipe).ToString();
+                    //    pipe.LookupParameter("備註").Set(pipeNum);
+                    //    pipeDiameters.Add(pipeDia);
+                    //    st.AppendLine(pipeDia.ToString());
+                    //}
 
 
                     //先找要放置的族群類型名稱與計算作為基準的管長
@@ -131,7 +146,7 @@ namespace AutoHangerCreation_ButtonCreate
                         }
                     }
 
-                    double half_PI = Math.PI / 2;
+                    double half_PI = Math.PI / 2; //90度
 
                     foreach (XYZ p1 in locationList)
                     {
@@ -139,11 +154,42 @@ namespace AutoHangerCreation_ButtonCreate
                         XYZ p2 = new XYZ(p1.X, p1.Y, p1.Z + 1);
                         Line Axis = Line.CreateBound(p1, p2);
                         XYZ p3 = new XYZ(0, p1.X, 0);
-                        degrees = Math.PI - p3.AngleTo(pipeLineProject.Direction);
-                        double a = degrees * 180 / (Math.PI);
-                        double finalRotate = Math.Abs(half_PI - degrees);
+                        //degrees = Math.PI - p3.AngleTo(pipeLineProject.Direction);
+                        degrees = p3.AngleTo(pipeLineProject.Direction);
+                        double a = Math.Round(degrees * 180 / (Math.PI));
+                        //double finalRotate = Math.Abs(Math.PI- degrees );
+                        //double finalRotate = Math.Abs( half_PI- degrees);
+                        double finalRotate = degrees;
+                        if (a == 0) //ok
+                        {
+                            finalRotate = -degrees;
+                        }
+                        else if (a == 90)//ok
+                        {
+                            finalRotate = degrees;
+                        }
+                        else if (a == 45)//ok
+                        {
+                            finalRotate = degrees;
+                        }
+                        else if (a == 135)//ok
+                        {
+                            finalRotate = Math.PI - finalRotate;
+                        }
+                        else if (a == 180) //ok
+                        {
+                            finalRotate = degrees + Math.PI;
+                        }
+                        else
+                        {
+                            finalRotate = degrees;
+                        }
+                        ////旋轉吊架方法1
+                        //hanger.Location.Rotate(Axis, finalRotate);
 
-                        hanger.Location.Rotate(Axis, degrees); //旋轉吊架方法
+                        //旋轉吊架方法2
+                        ElementTransformUtils.RotateElement(doc, hanger.Id, Axis, finalRotate);
+
                         for (int i = 0; i < pipeDiameters.Count; i++)
                         {
                             hanger.LookupParameter($"管直徑0{i + 1}").SetValueString(pipeDiameters[i].ToString());
@@ -153,9 +199,15 @@ namespace AutoHangerCreation_ButtonCreate
                             hanger.LookupParameter($"管間距0{i + 1}").Set(pipeDist[i]);
                         }
                         //做最後的調整，以第一個管為依據，將多管吊架對應至管底
-                        double originOffset = hanger.LookupParameter("偏移").AsDouble();
+#if RELEASE2019
+                        Parameter pa = hanger.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM);
+#else
+                        Parameter pa = hanger.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM);
+#endif
+                        double originOffset = pa.AsDouble();
                         double toMove = sortElements[0].LookupParameter("外徑").AsDouble() / 2;
-                        hanger.LookupParameter("偏移").Set(originOffset - toMove);
+                        pa.Set(originOffset - toMove);
+                        //hanger.LookupParameter("偏移").Set(originOffset - toMove);
 
                         //延伸吊架的牙桿長度
                         //FamilyInstance hangerinstance = hanger as FamilyInstance;
@@ -209,7 +261,12 @@ namespace AutoHangerCreation_ButtonCreate
 
                     double movedown = HangLevel.Elevation;//取得該層樓高層
                     instance = doc.Create.NewFamilyInstance(location, targetFamily, HangLevel, StructuralType.NonStructural);
-                    double toMove = (instance.LookupParameter("偏移").AsDouble()) - movedown;
+#if RELEASE2019
+                    Parameter tempPara = instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM);
+#else
+                    Parameter tempPara = instance.get_Parameter(BuiltInParameter.INSTANCE_ELEVATION_PARAM);
+#endif
+                    double toMove = (tempPara.AsDouble()) - movedown;
                     instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM).Set(toMove);
                 }
                 return instance;
@@ -239,20 +296,25 @@ namespace AutoHangerCreation_ButtonCreate
             XYZ calStr = pipeCrv.GetEndPoint(0);
             XYZ calEnd = pipeCrv.GetEndPoint(1);
             Line calCurveProject = Line.CreateBound(calStr, new XYZ(calEnd.X, calEnd.Y, calStr.Z));
-            double angleTest = basePt.AngleTo(calCurveProject.Direction) * (180 / Math.PI);
+            XYZ projectCenter = calCurveProject.Evaluate(0.5, true);
+            //double angleTest = basePt.AngleTo(calCurveProject.Direction) * (180 / Math.PI);
+            double angleTest = projectCenter.AngleTo(calCurveProject.Direction) * (180 / Math.PI);
             double sortRefer = 0.0;
 
             if (angleTest >= 45 && angleTest <= 135)
             {
-                sortRefer = calStr.Y;
+                //sortRefer = calStr.Y;
+                sortRefer = projectCenter.X;
             }
             else if (angleTest >= 0 && angleTest < 45)
             {
-                sortRefer = calStr.X;
+                //sortRefer = calStr.X;
+                sortRefer = projectCenter.X;
             }
-            else if (angleTest >= 145 && angleTest <= 180)
+            else if (angleTest > 135 && angleTest <= 180)
             {
-                sortRefer = calStr.X;
+                //sortRefer = calStr.X;
+                sortRefer = projectCenter.X;
             }
             return sortRefer;
         }

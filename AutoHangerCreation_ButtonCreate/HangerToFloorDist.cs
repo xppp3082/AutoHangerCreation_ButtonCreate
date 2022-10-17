@@ -52,7 +52,7 @@ namespace AutoHangerCreation_ButtonCreate
                 }
                 catch
                 {
-                    MessageBox.Show("請檢查是否有選到上方沒有樓板或存在樑中的吊架!!");
+                    MessageBox.Show("請檢查是否有在剖面框中使用此功能，或是否有選到上方沒有樓板或存在樑中的吊架!!");
                     trans.RollBack();
                     return Result.Failed;
                 }
@@ -99,10 +99,16 @@ namespace AutoHangerCreation_ButtonCreate
         {
             public bool AllowElement(Element element)
             {
-                if (element.Category.Name == "管附件")
-                {
-                    return true;
-                }
+                FamilyInstance  inst =  element as FamilyInstance;
+                FamilySymbol symbol = inst.Symbol;
+                string elementName = symbol.FamilyName;
+                if (elementName.Contains("管束") || elementName.Contains("束帶") || elementName.Contains("吊架"))
+                    if (element.Category.Name == "管附件")
+                    {
+                        {
+                            return true;
+                        }
+                    }
                 return false;
             }
 

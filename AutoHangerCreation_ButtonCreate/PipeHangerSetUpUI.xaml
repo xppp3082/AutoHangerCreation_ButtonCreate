@@ -31,9 +31,9 @@
 
         <!--設定分割距離-->
         <GroupBox x:Name="DivideValueGroupBox" Header="設定吊架間距:" Grid.Column="0" Grid.Row="0" Margin="5,0" Grid.ColumnSpan="5" FontSize="12"  />
-        <Slider x:Name ="DivideValue_Slider" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="20,0,0,0" Maximum="2000"  Value="{Binding Path=Text,ElementName=DivideValue_TextBox,Mode=TwoWay}" LargeChange="100" SmallChange="10" TickFrequency="5" TickPlacement="BottomRight" Cursor="Arrow" AutoToolTipPrecision="10" Background="#00000000" BorderBrush="#00000000" Foreground="#FFD6D6D6"/>
+        <Slider x:Name ="DivideValue_Slider" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="20,0,0,0" Maximum="500"  Value="{Binding Path=Text,ElementName=DivideValue_TextBox,Mode=TwoWay}" LargeChange="50" SmallChange="10" TickPlacement="BottomRight" Cursor="Arrow" AutoToolTipPrecision="10" Background="#00000000" BorderBrush="#00000000" Foreground="#FFD6D6D6" AllowDrop="True" IsSnapToTickEnabled="True"/>
         <TextBox x:Name="DivideValue_TextBox" Height="24" Width="75" Grid.Column="2" Grid.Row="0" TextAlignment="Right" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Path=Value,ElementName=DivideValue_Slider,Mode=TwoWay}" FontSize="12" Margin="10,34,0,30" />
-        <TextBlock x:Name="UnitTextBlock" Text="公釐(mm)" Width="63" Grid.Column="4" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,38,0,34" FontSize="12"  />
+        <TextBlock x:Name="UnitTextBlock" Text="公分(cm)" Width="63" Grid.Column="4" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,38,0,34" FontSize="12"  />
 
         <!--設定吊架種類-->
         <GroupBox Header="設定吊架種類:" Grid.Row="2" Grid.Column="0" FontSize="12" Margin="5,0" Grid.ColumnSpan="2"/>
