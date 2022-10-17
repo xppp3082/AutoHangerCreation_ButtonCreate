@@ -29,7 +29,7 @@
                     <TextBox x:Name="divideValueBox" Padding="5" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="0 25 0 0">
-                    <TextBlock Text="mm"  FontSize="12" />
+                    <TextBlock Text="cm"  FontSize="12" />
                 </StackPanel>
             </Grid>
             <!-- Status and Revision -->

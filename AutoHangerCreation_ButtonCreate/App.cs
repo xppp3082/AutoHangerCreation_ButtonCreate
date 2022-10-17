@@ -23,7 +23,7 @@ namespace AutoHangerCreation_ButtonCreate
         //用來創造按鈕 for 單管
         const string RIBBON_TAB = "【CEC MEP】";
         const string RIBBON_PANEL = "管吊架";
-        
+
 
         public Result OnStartup(UIControlledApplication a)
         {
@@ -85,7 +85,7 @@ namespace AutoHangerCreation_ButtonCreate
                 btnData.LargeImage = imgSrc;
             };
 
-            PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.MultiPipeHangerCreation");
+            PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.MultiPipeHangerCreationV2");
             {
                 btnData2.ToolTip = "點選管段創建多管吊架";
                 btnData2.LongDescription = "點選需要創建的管段，生成多管吊架，單次最多選擇八支管";
