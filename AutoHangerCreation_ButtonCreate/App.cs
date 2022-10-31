@@ -12,18 +12,17 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
+using Excel = Microsoft.Office.Interop.Excel;
 
 #endregion
 
 namespace AutoHangerCreation_ButtonCreate
 {
-    class App : IExternalApplication
+ class App : IExternalApplication
     {
         //用來創造按鈕 for 單管
         const string RIBBON_TAB = "【CEC MEP】";
         const string RIBBON_PANEL = "管吊架";
-
 
         public Result OnStartup(UIControlledApplication a)
         {
@@ -71,6 +70,7 @@ namespace AutoHangerCreation_ButtonCreate
             //第三種做Button按鈕圖片的方法，參考官網對於button製作的描述
             //Uri uriImage = new Uri(@"D:\Dropbox (CHC Group)\工作人生\組內專案\02.Revit API開發\01.自動放置吊架\ICON\單管&多管V2 [轉換]-01).96dpi.png");
             //BitmapImage largeImage = new BitmapImage(uriImage);
+            string assemblyInfo = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             // create the button data
             PushButtonData btnData = new PushButtonData(
@@ -81,28 +81,28 @@ namespace AutoHangerCreation_ButtonCreate
                 );
             {
                 btnData.ToolTip = "點選管段創建單管吊架";
-                btnData.LongDescription = "點選需要創建的管段，生成單管吊架";
+                btnData.LongDescription = $"點選需要創建的管段，生成單管吊架({assemblyInfo})";
                 btnData.LargeImage = imgSrc;
             };
 
             PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.MultiPipeHangerCreationV2");
             {
                 btnData2.ToolTip = "點選管段創建多管吊架";
-                btnData2.LongDescription = "點選需要創建的管段，生成多管吊架，單次最多選擇八支管";
+                btnData2.LongDescription = $"點選需要創建的管段，生成多管吊架，單次最多選擇八支管({assemblyInfo})";
                 btnData2.LargeImage = imgSrc2;
             }
 
             PushButtonData btnData3 = new PushButtonData("MyButton_ThreadAdjust", "調整\n   螺桿長度   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.HangerToFloorDist");
             {
                 btnData3.ToolTip = "點選需要調整的吊架";
-                btnData3.LongDescription = "點選需要調整的吊架，調整螺桿長度連接至外參建築樓板";
+                btnData3.LongDescription = $"點選需要調整的吊架，調整螺桿長度連接至外參建築樓板({assemblyInfo})";
                 btnData3.LargeImage = imgSrc3;
             }
 
             PushButtonData btnData4 = new PushButtonData("MyButton_SetUp", "設定\n   單管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.PipeHangerSetUp");
             {
                 btnData4.ToolTip = "設定吊架類型與間距";
-                btnData4.LongDescription = "設定自動放置單管吊架所需的吊架類型與間距，設定後才能使用單管吊架功能";
+                btnData4.LongDescription = $"設定自動放置單管吊架所需的吊架類型與間距，設定後才能使用單管吊架功能({assemblyInfo})";
                 btnData4.LargeImage = imgSrc4;
             }
 
@@ -124,9 +124,11 @@ namespace AutoHangerCreation_ButtonCreate
 
         public Result OnShutdown(UIControlledApplication a)
         {
+            MessageBox.Show($"{RIBBON_TAB} - {RIBBON_PANEL} 共被使用了 {Counter.count} 次");
             return Result.Succeeded;
         }
 
+     
 
         private BitmapSource GetImageSource(Image img)
         {

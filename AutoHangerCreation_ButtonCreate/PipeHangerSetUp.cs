@@ -11,7 +11,6 @@ using System.Linq;
 using System;
 using System.Drawing;
 using System.Windows.Media.Imaging;
-using System.Windows;
 #endregion
 
 namespace AutoHangerCreation_ButtonCreate
@@ -47,6 +46,7 @@ namespace AutoHangerCreation_ButtonCreate
             }
             catch
             {
+                System.Windows.Forms.MessageBox.Show("錯誤，視窗無法顯示");
                 return Result.Failed;
             }
             return Result.Succeeded;
@@ -79,7 +79,8 @@ namespace AutoHangerCreation_ButtonCreate
                 //Family tempFamily = e as Family;
                 FamilySymbol tempSymbol = e as FamilySymbol;
                 Parameter targetPara = tempSymbol.LookupParameter(paraName);
-                if (targetPara != null && targetPara.AsValueString().Contains(targetName)&&!hangerTypes.Contains(tempSymbol.Family.Name))
+                //MessageBox.Show("ua");
+                if (targetPara != null && targetPara.AsString().Contains(targetName) && !hangerTypes.Contains(tempSymbol.Family.Name))
                 {
                     hangerTypes.Add(tempSymbol.Family.Name);
                     continue;

@@ -9,7 +9,7 @@ using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI.Selection;
 using System.Linq;
 using System;
-
+using Excel = Microsoft.Office.Interop.Excel;
 #endregion
 namespace AutoHangerCreation_ButtonCreate
 {
@@ -171,101 +171,143 @@ namespace AutoHangerCreation_ButtonCreate
             }
             catch
             {
-                MessageBox.Show("執行失敗");
+                //MessageBox.Show("執行失敗");
                 return Result.Failed;
             }
+            Counter.count += 1;
+            //writeDatatoExcel();
             return Result.Succeeded;
         }
-
-
-
-        class pipeHanger
+        public void writeDatatoExcel()
         {
-            //1.自動匯入元件檔的功能
-            //2.自動判斷大小後選擇欲放置的吊架
-            //public Family pipeHangerFamily(Document doc, double pipeDiameter)
-
-            public FamilySymbol getFamilySymbol(Document doc, double pipeDiameter)
+            #region 需要的變數
+            //是否要執行與寫入-->True or False，利用Counter.count判斷
+            //文字-->RibbonPanel Name
+            #endregion
+            //取得使用者名稱
+            //string userName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            string userName = Environment.UserName;
+            string fileName = userName + ".xls";
+            MessageBox.Show(userName);
+            //取得今天的時間
+            DateTime toDay = DateTime.Today.Date;
+            string theDate = toDay.ToString();
+            Excel.Application excelApp = new Excel.Application();
+            string filepath = @"C:\Users\12061753\Documents\";
+            string finalPath = filepath + fileName;
+            if (excelApp != null)
             {
-                Family tagerFamily = null;
-                string targetFamilyName = PIpeHangerSetting.Default.FamilySelected;
-                ElementFilter FamilyFilter = new ElementClassFilter(typeof(Family));
-                FilteredElementCollector hangerCollector = new FilteredElementCollector(doc);
-                hangerCollector.WherePasses(FamilyFilter).ToElements();
-                foreach (Family family in hangerCollector)
+                if (File.Exists(finalPath))
                 {
-                    if (family.Name == targetFamilyName)
-                    {
-                        tagerFamily = family;
-                    }
                 }
+                Excel.Workbook excelWorkbook = excelApp.Workbooks.Add();
+                Excel.Worksheet excelWorksheet = new Excel.Worksheet();
+                excelWorksheet = excelWorkbook.Worksheets[1];
+                excelWorksheet.Name = "【管吊架】";
+                //利用DateTime判斷寫入資料的欄位是否要變更
+                excelWorksheet.Cells[1, 1] = theDate;
+                excelWorksheet.Cells[1, 2] = Counter.count;
 
-                //以管徑判斷，取得targetFamily下的管徑
-                FamilySymbol targetSymbol = null;
-                if (tagerFamily != null)
+                //excelApp.ActiveWorkbook.SaveAs(@"C:\Users\12061753\Desktop\abc.xls", Excel.XlFileFormat.xlWorkbookNormal);
+                excelApp.ActiveWorkbook.SaveAs(finalPath, Excel.XlSaveAsAccessMode.xlNoChange);
+                //excelWorkbook.SaveAs(@"C:\Users\12061753\Documents\abc.xls");
+
+                //關閉及釋放物件
+                //excelWorksheet = null;
+                //excelWorkbook.Close();
+                //excelWorkbook = null;
+                //excelApp.Quit();
+                //excelApp = null;        
+
+            }
+        }
+    }
+    class pipeHanger
+    {
+        //1.自動匯入元件檔的功能
+        //2.自動判斷大小後選擇欲放置的吊架
+        //public Family pipeHangerFamily(Document doc, double pipeDiameter)
+
+        public FamilySymbol getFamilySymbol(Document doc, double pipeDiameter)
+        {
+            Family tagerFamily = null;
+            string targetFamilyName = PIpeHangerSetting.Default.FamilySelected;
+            ElementFilter FamilyFilter = new ElementClassFilter(typeof(Family));
+            FilteredElementCollector hangerCollector = new FilteredElementCollector(doc);
+            hangerCollector.WherePasses(FamilyFilter).ToElements();
+            foreach (Family family in hangerCollector)
+            {
+                if (family.Name == targetFamilyName)
                 {
-                    foreach (ElementId hangId in tagerFamily.GetFamilySymbolIds())
+                    tagerFamily = family;
+                }
+            }
+
+            //以管徑判斷，取得targetFamily下的管徑
+            FamilySymbol targetSymbol = null;
+            if (tagerFamily != null)
+            {
+                foreach (ElementId hangId in tagerFamily.GetFamilySymbolIds())
+                {
+                    FamilySymbol tempSymbol = doc.GetElement(hangId) as FamilySymbol;
+                    if (targetFamilyName == "M_光纖纜架_管附件")
                     {
-                        FamilySymbol tempSymbol = doc.GetElement(hangId) as FamilySymbol;
-                        if (targetFamilyName == "M_光纖纜架_管附件")
+                        targetSymbol = tempSymbol;
+                    }
+                    else
+                    {
+                        double hangerDiameter = tempSymbol.LookupParameter("標稱直徑").AsDouble(); //利用標稱直徑的參數作為判斷依據
+                        if (hangerDiameter == pipeDiameter)
                         {
                             targetSymbol = tempSymbol;
                         }
-                        else
-                        {
-                            double hangerDiameter = tempSymbol.LookupParameter("標稱直徑").AsDouble(); //利用標稱直徑的參數作為判斷依據
-                            if (hangerDiameter == pipeDiameter)
-                            {
-                                targetSymbol = tempSymbol;
-                            }
-                        }
-                    }
-                    if (targetSymbol == null)
-                    {
-                        MessageBox.Show("預設的吊架沒有和管匹配的類型，請重新設定!!");
                     }
                 }
-                return targetSymbol;
-            }
-            public FamilyInstance CreateHanger(Document doc, XYZ location, Element element, FamilySymbol targetFamily)
-            {
-                //創造吊架
-                FamilyInstance instance = null;
-                if (targetFamily != null)
+                if (targetSymbol == null)
                 {
-                    targetFamily.Activate();
-                    if (null != targetFamily)
-                    {
-                        MEPCurve pipCrv = element as MEPCurve; //選取管件，一定可以轉型MEPCurve
-                        Level HangLevel = pipCrv.ReferenceLevel;
-                        double moveDown = HangLevel.ProjectElevation; //取得該層樓高層
-                        instance = doc.Create.NewFamilyInstance(location, targetFamily, HangLevel, StructuralType.NonStructural); //一定要宣告structural 類型? yes
-                        double toMove2 = location.Z - moveDown;
+                    MessageBox.Show("預設的吊架沒有和管匹配的類型，請重新設定!!");
+                }
+            }
+            return targetSymbol;
+        }
+        public FamilyInstance CreateHanger(Document doc, XYZ location, Element element, FamilySymbol targetFamily)
+        {
+            //創造吊架
+            FamilyInstance instance = null;
+            if (targetFamily != null)
+            {
+                targetFamily.Activate();
+                if (null != targetFamily)
+                {
+                    MEPCurve pipCrv = element as MEPCurve; //選取管件，一定可以轉型MEPCurve
+                    Level HangLevel = pipCrv.ReferenceLevel;
+                    double moveDown = HangLevel.ProjectElevation; //取得該層樓高層
+                    instance = doc.Create.NewFamilyInstance(location, targetFamily, HangLevel, StructuralType.NonStructural); //一定要宣告structural 類型? yes
+                    double toMove2 = location.Z - moveDown;
 #if RELEASE2019
- instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
+                    instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
 #else
                         instance.get_Parameter(BuiltInParameter.INSTANCE_ELEVATION_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
 #endif
-                    }
                 }
-                return instance;
             }
+            return instance;
         }
-        public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
+    }
+    public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
+    {
+        public bool AllowElement(Element element)
         {
-            public bool AllowElement(Element element)
+            if (element.Category.Name == "管" || element.Category.Name == "電管" || element.Category.Name == "風管")
             {
-                if (element.Category.Name == "管" || element.Category.Name == "電管" || element.Category.Name == "風管")
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            public bool AllowReference(Reference refer, XYZ point)
-            {
-                return false;
-            }
+        public bool AllowReference(Reference refer, XYZ point)
+        {
+            return true;
         }
     }
 }
