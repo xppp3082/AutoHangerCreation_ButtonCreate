@@ -27,6 +27,7 @@ namespace AutoHangerCreation_ButtonCreate
             //2.點選第一隻管外的其他管
             //3.
             //4.
+            Counter.count += 1;
             try
             {
                 UIDocument uidoc = commandData.Application.ActiveUIDocument;
@@ -86,17 +87,6 @@ namespace AutoHangerCreation_ButtonCreate
                     //角度測量測試
                     XYZ basePt = new XYZ(0, 1, 0);
                     List<double> pipeAngle = new List<double>();
-
-                    ////檢查用
-                    //foreach (Element pipe in sortElements)
-                    //{
-                    //    string pipeDia = pipe.LookupParameter("直徑").AsValueString();
-                    //    string pipeNum = sortElements.IndexOf(pipe).ToString();
-                    //    pipe.LookupParameter("備註").Set(pipeNum);
-                    //    pipeDiameters.Add(pipeDia);
-                    //    st.AppendLine(pipeDia.ToString());
-                    //}
-
 
                     //先找要放置的族群類型名稱與計算作為基準的管長
                     FamilySymbol multiHangerType = new MultiPipeHanger().FindhangerType(doc);

@@ -29,6 +29,7 @@ namespace AutoHangerCreation_ButtonCreate
         private Autodesk.Revit.ApplicationServices.Application app;
         private Document doc;
         public BitmapImage catchImage { get; set; }
+        public BitmapImage multiImage { get; set; }
         public string divideValue_setUp{ get; set; }
         public string targetFamily_setUp { get; set; }
         public PipeHangerSetUpUI(ExternalCommandData commandData)
@@ -40,9 +41,12 @@ namespace AutoHangerCreation_ButtonCreate
             doc = uidoc.Document;
             List<string> hangerFamilyList = new HangerTypeCollection().getAllHangerNames(doc);
             this.HangerTypeComboBox.ItemsSource = hangerFamilyList;
+            List<string> multiHangerFamilyList = new HangerTypeCollection().getMultiHangerNames(doc);
+            this.MultiHangerComboBox.ItemsSource = multiHangerFamilyList;
 
             //儲存預設值後在下次視窗開啟時顯示
             this.HangerTypeComboBox.SelectedItem = PIpeHangerSetting.Default.FamilySelected;
+            this.MultiHangerComboBox.SelectedItem = PIpeHangerSetting.Default.MultiHangerSelected;
             this.DivideValue_TextBox.Text = PIpeHangerSetting.Default.DivideValueSelected;
         }
 
@@ -51,6 +55,7 @@ namespace AutoHangerCreation_ButtonCreate
             //選擇後，寫入default setting檔
             PIpeHangerSetting.Default.DivideValueSelected = DivideValue_TextBox.Text;
             PIpeHangerSetting.Default.FamilySelected = HangerTypeComboBox.SelectedItem.ToString();
+            PIpeHangerSetting.Default.MultiHangerSelected = MultiHangerComboBox.SelectedItem.ToString();
             PIpeHangerSetting.Default.Save();
 
             Debug.WriteLine("Ok button was clicked.");
@@ -69,6 +74,11 @@ namespace AutoHangerCreation_ButtonCreate
         {
             catchImage = new HangerTypeCollection().getPreviewImage(doc, HangerTypeComboBox.SelectedItem.ToString());
             this.PreviewImage.Source = catchImage;
+        }
+        private void MultiTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            multiImage = new HangerTypeCollection().getPreviewImage(doc, MultiHangerComboBox.SelectedItem.ToString());
+            this.MultiPreviewImage.Source = multiImage;
         }
     }
 }

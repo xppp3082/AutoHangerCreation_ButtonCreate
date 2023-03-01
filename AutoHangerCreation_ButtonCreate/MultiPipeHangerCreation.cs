@@ -22,14 +22,16 @@ namespace AutoHangerCreation_ButtonCreate
 #endif
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            Counter.count += 1;
             try
             {
                 UIDocument uidoc = commandData.Application.ActiveUIDocument;
-                Autodesk.Revit.UI.Selection.ISelectionFilter pipeFilter = new PipeSelectionFilter();
+
 
                 //點選要一起放置多管吊架的管段
                 List<Element> pickElements = new List<Element>();
                 Document doc = uidoc.Document;
+                Autodesk.Revit.UI.Selection.ISelectionFilter pipeFilter = new PipeSelectionFilter(doc);
                 IList<Reference> pickElements_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段，單次最多選擇 8 隻管");
 
                 foreach (Reference reference in pickElements_Refer)
@@ -215,21 +217,7 @@ namespace AutoHangerCreation_ButtonCreate
                 return instance;
             }
         }
-        public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
-        {
-            public bool AllowElement(Element element)
-            {
-                if (element.Category.Name == "管")
-                {
-                    return true;
-                }
-                return false;
-            }
-            public bool AllowReference(Reference refer, XYZ point)
-            {
-                return false;
-            }
-        }
+
         public double sortPIpeByRefer(Element element)
         {
             //製作一個排序的方法，提供給lambda使用

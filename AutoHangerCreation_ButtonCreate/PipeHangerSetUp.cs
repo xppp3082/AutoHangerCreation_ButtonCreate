@@ -20,6 +20,7 @@ namespace AutoHangerCreation_ButtonCreate
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            Counter.count += 1;
             try
             {
                 UIApplication uiapp = commandData.Application;
@@ -27,13 +28,7 @@ namespace AutoHangerCreation_ButtonCreate
                 Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
                 Document doc = uidoc.Document;
                 string output = "";
-                List<string> hangersInDoc = new HangerTypeCollection().getAllHangerNames(doc);
-                foreach (string st in hangersInDoc)
-                {
-                    output += $"{st}\n";
-                }
-                //MessageBox.Show(hangersInDoc.Count().ToString());
-                //MessageBox.Show(output);
+
 
                 //顯示設定視窗並選入更新值
                 PipeHangerSetUpUI setUp_Window = new PipeHangerSetUpUI(commandData);
@@ -41,6 +36,11 @@ namespace AutoHangerCreation_ButtonCreate
                 if (PIpeHangerSetting.Default.DivideValueSelected == null || PIpeHangerSetting.Default.DivideValueSelected == PIpeHangerSetting.Default.FamilySelected)
                 {
                     message = "單管吊架設定未完成 !!";
+                    return Result.Failed;
+                }
+                if (PIpeHangerSetting.Default.DivideValueSelected == null ||  PIpeHangerSetting.Default.MultiHangerSelected==null)
+                {
+                    message = "多管吊架設定未完成 !!";
                     return Result.Failed;
                 }
             }
@@ -68,29 +68,41 @@ namespace AutoHangerCreation_ButtonCreate
             //    "M_UB束帶_管附件"
             //};
             List<string> hangerTypes = new List<string>();
-            //ElementFilter CategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_PipeAccessory);
-            //ElementFilter FamilyFilter = new ElementClassFilter(typeof(Family));
             ElementFilter SymbolFilter = new ElementClassFilter(typeof(FamilySymbol));
-            //LogicalAndFilter andFilter = new LogicalAndFilter(CategoryFilter, FamilyFilter);
-            FilteredElementCollector hangerCollector = new FilteredElementCollector(doc)/*.OfCategory(BuiltInCategory.OST_PipeAccessory).OfClass(typeof(Family))*/;
+            FilteredElementCollector hangerCollector = new FilteredElementCollector(doc);
             hangerCollector.WherePasses(SymbolFilter).ToElements();
             foreach (Element e in hangerCollector)
             {
-                //Family tempFamily = e as Family;
                 FamilySymbol tempSymbol = e as FamilySymbol;
                 Parameter targetPara = tempSymbol.LookupParameter(paraName);
-                //MessageBox.Show("ua");
                 if (targetPara != null && targetPara.AsString().Contains(targetName) && !hangerTypes.Contains(tempSymbol.Family.Name))
                 {
                     hangerTypes.Add(tempSymbol.Family.Name);
                     continue;
                 }
-                //if (hangerNames.Contains(tempFamily.Name))
-                //{
-                //    hangerTypes.Add(tempFamily.Name);
-                //}
             }
             return hangerTypes;
+        }
+        public List<string> getMultiHangerNames(Document doc)
+        {
+            string paraName = "API識別名稱";
+            string targetName = "多管";
+            List<string> multiHangerTypes = new List<string>();
+            ElementFilter SymbolFilter = new ElementClassFilter(typeof(FamilySymbol));
+            FilteredElementCollector multiHangerCollector = new FilteredElementCollector(doc);
+            multiHangerCollector.WherePasses(SymbolFilter).ToElements();
+            foreach (Element e in multiHangerCollector)
+            {
+                FamilySymbol tempSymbol = e as FamilySymbol;
+                Parameter targetPara = tempSymbol.LookupParameter(paraName);
+                if (targetPara != null && targetPara.AsString().Contains(targetName) && !multiHangerTypes.Contains(tempSymbol.Family.Name))
+                {
+                    multiHangerTypes.Add(tempSymbol.Family.Name);
+                    continue;
+                }
+            }
+            return multiHangerTypes;
+
         }
 
         public BitmapImage getPreviewImage(Document doc, string familyName)

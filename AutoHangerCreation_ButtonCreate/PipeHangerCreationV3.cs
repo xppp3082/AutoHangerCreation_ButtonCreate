@@ -25,15 +25,16 @@ namespace AutoHangerCreation_ButtonCreate
         //DisplayUnitType unitType = DisplayUnitType.DUT_CENTIMETERS;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            Counter.count += 1;
             try
             {
                 //限制使用者只能選中管
                 UIDocument uidoc = commandData.Application.ActiveUIDocument;
-                Autodesk.Revit.UI.Selection.ISelectionFilter pipeFilter = new PipeSelectionFilter();
 
                 //點選要一起放置單管吊架的管段
                 List<Element> pickElements = new List<Element>();
                 Document doc = uidoc.Document;
+                Autodesk.Revit.UI.Selection.ISelectionFilter pipeFilter = new PipeSelectionFilter(doc);
                 IList<Reference> pickElements_Refer = uidoc.Selection.PickObjects(ObjectType.Element, pipeFilter, $"請選擇欲放置吊架的管段");
 
                 foreach (Reference reference in pickElements_Refer)
@@ -180,9 +181,11 @@ namespace AutoHangerCreation_ButtonCreate
         }
         public void writeDatatoExcel()
         {
-            #region 需要的變數
-            //是否要執行與寫入-->True or False，利用Counter.count判斷
-            //文字-->RibbonPanel Name
+            #region 紀錄邏輯
+            //1.決定要存取的檔案路徑位置&使用者名稱
+            //2.判斷檔案是否已經存在該路徑-->沒有則創建檔案，有則打開檔案
+            //3.找尋是否有相對應的Column Name(addin Name in English) -->有的話則找到那一整欄，沒有的話則自己創一欄
+            //4.找到當下的對應格，以月份去搜尋
             #endregion
             //取得使用者名稱
             //string userName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
@@ -296,9 +299,30 @@ namespace AutoHangerCreation_ButtonCreate
     }
     public class PipeSelectionFilter : Autodesk.Revit.UI.Selection.ISelectionFilter
     {
+        private Document _doc;
+        public PipeSelectionFilter(Document doc)
+        {
+            this._doc = doc;
+        }
         public bool AllowElement(Element element)
         {
-            if (element.Category.Name == "管" || element.Category.Name == "電管" || element.Category.Name == "風管")
+            Category pipe = Category.GetCategory(_doc, BuiltInCategory.OST_PipeCurves);
+            Category duct = Category.GetCategory(_doc, BuiltInCategory.OST_DuctCurves);
+            Category conduit = Category.GetCategory(_doc, BuiltInCategory.OST_Conduit);
+            Category tray = Category.GetCategory(_doc, BuiltInCategory.OST_CableTray);
+            if (element.Category.Id == pipe.Id)
+            {
+                return true;
+            }
+            else if (element.Category.Id == duct.Id)
+            {
+                return true;
+            }
+            else if (element.Category.Id == conduit.Id)
+            {
+                return true;
+            }
+            else if (element.Category.Id == tray.Id)
             {
                 return true;
             }
@@ -307,7 +331,67 @@ namespace AutoHangerCreation_ButtonCreate
 
         public bool AllowReference(Reference refer, XYZ point)
         {
+            return false;
+        }
+    }
+    public class linkedPipeSelectionFilter : ISelectionFilter
+    {
+        private Document _doc;
+        public linkedPipeSelectionFilter(Document doc)
+        {
+            this._doc = doc;
+        }
+        public bool AllowElement(Element element)
+        {
             return true;
+        }
+        public bool AllowReference(Reference refer, XYZ point)
+        {
+            Category pipe = Category.GetCategory(_doc, BuiltInCategory.OST_PipeCurves);
+            Category duct = Category.GetCategory(_doc, BuiltInCategory.OST_DuctCurves);
+            Category conduit = Category.GetCategory(_doc, BuiltInCategory.OST_Conduit);
+            Category tray = Category.GetCategory(_doc, BuiltInCategory.OST_CableTray);
+            var elem = this._doc.GetElement(refer);
+            if (elem != null && elem is RevitLinkInstance link)
+            {
+                var linkElem = link.GetLinkDocument().GetElement(refer.LinkedElementId);
+                if (linkElem.Category.Id == pipe.Id)
+                {
+                    return true;
+                }
+                else if (linkElem.Category.Id == duct.Id)
+                {
+                    return true;
+                }
+                else if (linkElem.Category.Id == conduit.Id)
+                {
+                    return true;
+                }
+                else if (linkElem.Category.Id == tray.Id)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (elem.Category.Id == pipe.Id)
+                {
+                    return true;
+                }
+                else if (elem.Category.Id == duct.Id)
+                {
+                    return true;
+                }
+                else if (elem.Category.Id == conduit.Id)
+                {
+                    return true;
+                }
+                else if (elem.Category.Id == tray.Id)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

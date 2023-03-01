@@ -117,18 +117,18 @@ namespace AutoHangerCreation_ButtonCreate
             button2.Enabled = true;
             button3.Enabled = true;
             button4.Enabled = true;
-            panel.AddSeparator();
 
             return Result.Succeeded;
         }
 
         public Result OnShutdown(UIControlledApplication a)
         {
-            MessageBox.Show($"{RIBBON_TAB} - {RIBBON_PANEL} 共被使用了 {Counter.count} 次");
+            //次數記錄後儲存
+            ExcelLog log = new ExcelLog(Counter.count);
+            log.userLog();
+            //MessageBox.Show($"管吊架模組共被使用了{Counter.count}次");
             return Result.Succeeded;
         }
-
-     
 
         private BitmapSource GetImageSource(Image img)
         {

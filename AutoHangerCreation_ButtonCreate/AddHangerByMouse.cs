@@ -29,10 +29,13 @@ namespace AutoHangerCreation_ButtonCreate
                 {
                     UIDocument uidoc = commandData.Application.ActiveUIDocument;
                     Document doc = uidoc.Document;
-                    Autodesk.Revit.UI.Selection.ISelectionFilter pipeFilter = new PipeSelectionFilter();
-                    //Reference refer1 = uidoc.Selection.PickObject(ObjectType.PointOnElement, "Test");
-                    //XYZ pt = refer1.GlobalPoint;
-                    //MessageBox.Show($"X:{pt.X}，Y:{pt.Y}，Z:{pt.Z}");
+                    Autodesk.Revit.UI.Selection.ISelectionFilter pipeFilter = new PipeSelectionFilter(doc);
+                    XYZ previousPt = null;
+                    Reference previousRefer = null;
+                    ReferenceArray reArray = null;
+                    PreviewControl pControl = new PreviewControl(doc, doc.ActiveView.Id);
+                    //pControl.MouseMove += MessageBox.Show("");
+
                     Reference refer = uidoc.Selection.PickObject(ObjectType.PointOnElement, pipeFilter, "請點選欲放置管架的位置");
                     XYZ position = refer.GlobalPoint;
 
@@ -82,6 +85,8 @@ namespace AutoHangerCreation_ButtonCreate
                         }
                         //旋轉後校正位置
                         hanger.Location.Rotate(Axis, finalRotate);
+                        previousPt = targetPoint;
+                        previousRefer = new Reference(hanger);
                         trans.Commit();
                     }
                 }
@@ -95,5 +100,6 @@ namespace AutoHangerCreation_ButtonCreate
             Counter.count += 1;
             return Result.Succeeded;
         }
+
     }
 }

@@ -46,5 +46,17 @@ namespace AutoHangerCreation_ButtonCreate {
                 this["DivideValueSelected"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("null")]
+        public string MultiHangerSelected {
+            get {
+                return ((string)(this["MultiHangerSelected"]));
+            }
+            set {
+                this["MultiHangerSelected"] = value;
+            }
+        }
     }
 }

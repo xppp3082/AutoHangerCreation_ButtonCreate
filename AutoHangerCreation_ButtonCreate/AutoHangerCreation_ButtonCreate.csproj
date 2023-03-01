@@ -42,6 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2019|AnyCPU'">
     <OutputPath>bin\2019\</OutputPath>
     <DefineConstants>RELEASE2019</DefineConstants>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">
     <OutputPath>bin\2021\</OutputPath>
@@ -52,12 +53,20 @@
     <DefineConstants>RELEASE2023</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AdWindows, Version=4.0.0.6, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Autodesk\Revit 2019\AdWindows.dll</HintPath>
+    </Reference>
+    <Reference Include="BuildingCoder">
+      <HintPath>..\..\..\..\..\..\00_資料庫_大陸工程\R&amp;D Source\the_building_coder_samples-master\BuildingCoder\bin\Debug\net48\BuildingCoder.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\Shared\Visual Studio Tools for Office\PIA\Office15\Microsoft.Office.Interop.Excel.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RevitAPI, Version=19.0.0.0, Culture=neutral, processorArchitecture=AMD64" Condition="'$(Configuration)'=='2019'">
@@ -95,8 +104,10 @@
   <ItemGroup>
     <Compile Include="AddHangerByMouse.cs" />
     <Compile Include="App.cs" />
-    <Compile Include="Counter.cs" />
+    <Compile Include="ExcelLog.cs" />
     <Compile Include="HangerToFloorDist.cs" />
+    <Compile Include="method.cs" />
+    <Compile Include="MultiHangerCreationV3.cs" />
     <Compile Include="MultiPipeHangerCreation.cs" />
     <Compile Include="MultiPipeHangerCreationV2.cs" />
     <Compile Include="PipeHangerCreationV3.cs" />
@@ -121,6 +132,10 @@
     <Compile Include="PipeHangerUI.xaml.cs">
       <DependentUpon>PipeHangerUI.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RubberBandLine.cs" />
+    <Compile Include="TestFunction.cs" />
+    <Compile Include="ThreadAdjust.cs" />
+    <Compile Include="WindowsMessaging.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AutoHangerCreation_ButtonCreate.addin" />
