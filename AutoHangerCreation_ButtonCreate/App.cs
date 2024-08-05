@@ -77,7 +77,7 @@ namespace AutoHangerCreation_ButtonCreate
                 "MyButton_Single",
                 "創建\n   單管吊架   ",
                 Assembly.GetExecutingAssembly().Location,
-                "AutoHangerCreation_ButtonCreate.PipeHangerCreationV3"//按鈕的全名-->要依照需要參照的command打入
+                "AutoHangerCreation_ButtonCreate.AddHangerByMouseLink"//按鈕的全名-->要依照需要參照的command打入
                 );
             {
                 btnData.ToolTip = "點選管段創建單管吊架";
@@ -85,7 +85,7 @@ namespace AutoHangerCreation_ButtonCreate
                 btnData.LargeImage = imgSrc;
             };
 
-            PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.MultiPipeHangerCreationV2");
+            PushButtonData btnData2 = new PushButtonData("MyButton_Multi", "創建\n   多管吊架   ", Assembly.GetExecutingAssembly().Location, "AutoHangerCreation_ButtonCreate.MultiHangerCreationV3");
             {
                 btnData2.ToolTip = "點選管段創建多管吊架";
                 btnData2.LongDescription = $"點選需要創建的管段，生成多管吊架，單次最多選擇八支管({assemblyInfo})";
@@ -109,13 +109,13 @@ namespace AutoHangerCreation_ButtonCreate
             //add the button to the ribbon
             PushButton button = panel.AddItem(btnData) as PushButton;
             PushButton button2 = panel.AddItem(btnData2) as PushButton;
-            PushButton button3 = panel.AddItem(btnData3) as PushButton;
+            //PushButton button3 = panel.AddItem(btnData3) as PushButton;
             PushButton button4 = panel.AddItem(btnData4) as PushButton;
 
             //做完的button記得要Enable
             button.Enabled = true;
             button2.Enabled = true;
-            button3.Enabled = true;
+            //button3.Enabled = true;
             button4.Enabled = true;
 
             return Result.Succeeded;

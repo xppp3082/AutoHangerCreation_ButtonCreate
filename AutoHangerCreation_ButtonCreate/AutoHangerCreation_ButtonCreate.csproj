@@ -103,13 +103,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddHangerByMouse.cs" />
+    <Compile Include="AddHangerByMouseLink.cs" />
     <Compile Include="App.cs" />
     <Compile Include="ExcelLog.cs" />
     <Compile Include="HangerToFloorDist.cs" />
     <Compile Include="method.cs" />
     <Compile Include="MultiHangerCreationV3.cs" />
-    <Compile Include="MultiPipeHangerCreation.cs" />
-    <Compile Include="MultiPipeHangerCreationV2.cs" />
     <Compile Include="PipeHangerCreationV3.cs" />
     <Compile Include="PIpeHangerSetting.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -125,9 +124,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="PipeDistTestUI.cs">
-      <DependentUpon>PipeDistTestUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="PipeHangerUI.xaml.cs">
       <DependentUpon>PipeHangerUI.xaml</DependentUpon>
@@ -156,10 +152,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="PipeDistTestUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="PipeHangerSetUpUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

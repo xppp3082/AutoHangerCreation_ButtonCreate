@@ -24,6 +24,8 @@ namespace AutoHangerCreation_ButtonCreate
 #endif
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+
+            Counter.count += 1;
             //蒐集所有的管->包含外參管
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             Document doc = uidoc.Document;
@@ -52,8 +54,8 @@ namespace AutoHangerCreation_ButtonCreate
                 Curve MEPCrv = linkedLocate.Curve;
                 XYZ startPoint = MEPCrv.GetEndPoint(0);
                 XYZ endPoint = MEPCrv.GetEndPoint(1);
-                startPoint = TransformPoint(startPoint, pipeLinkedTransform);
-                endPoint = TransformPoint(endPoint, pipeLinkedTransform);
+                startPoint =method.TransformPoint(startPoint, pipeLinkedTransform);
+                endPoint = method.TransformPoint(endPoint, pipeLinkedTransform);
                 Line tempCrv = Line.CreateBound(startPoint, endPoint);
                 ElementWithTrans linkedEle = new ElementWithTrans { pipe = linkedPipe, locateCrv = tempCrv };
                 pickElements.Add(linkedEle);
@@ -62,7 +64,9 @@ namespace AutoHangerCreation_ButtonCreate
             {
                 try
                 {
-                    XYZ firstPoint = uidoc.Selection.PickPoint();
+                    Reference refer = uidoc.Selection.PickObject(ObjectType.PointOnElement, linkedPipeFilter, "請點選欲放置管架的位置");
+                    XYZ firstPoint = refer.GlobalPoint;
+                    //XYZ firstPoint = uidoc.Selection.PickPoint();
                     pickElements = pickElements.OrderBy(x => getPipeIntersection(x.pipe, x.locateCrv, firstPoint)).ToList();
 
                     //先蒐集所有的樓層後，按高度排序
@@ -92,6 +96,7 @@ namespace AutoHangerCreation_ButtonCreate
                         return Result.Failed;
                     }
 
+
                     Family targetFamily = findHangerFamily(doc);
                     //FamilySymbol targetSymbol = doc.GetElement(targetFamily.GetFamilySymbolIds().First()) as FamilySymbol;
 
@@ -105,7 +110,7 @@ namespace AutoHangerCreation_ButtonCreate
                             FamilySymbol symbol = doc.GetElement(multiHanger.GetFamilySymbolIds().First()) as FamilySymbol;
                             string APIcheck = "API識別名稱";
                             double adjustValue = 0.0;
-                            symbol.Activate();
+                            //symbol.Activate();
                             //以集合中的第一條線作為放置的基準
                             Element firstEle = pickElements.First().pipe;
                             double outterDia = getOutterDia(firstEle);
@@ -119,9 +124,14 @@ namespace AutoHangerCreation_ButtonCreate
                             }
                             XYZ targetPt = pickElements.First().locateCrv.Project(firstPoint).XYZPoint;
                             firstPoint = new XYZ(firstPoint.X, firstPoint.Y, targetPt.Z);
+
                             XYZ newTargetPt = new XYZ(targetPt.X, targetPt.Y, targetPt.Z - lowLevel.ProjectElevation - adjustValue);
                             FamilyInstance instance = doc.Create.NewFamilyInstance(newTargetPt, symbol, lowLevel, StructuralType.NonStructural);
 
+                            //針對高程必須在設定一次，否則有時吊架高程會跑掉
+                            Parameter elevationPara = instance.get_Parameter(BuiltInParameter.INSTANCE_ELEVATION_PARAM);
+                            if (elevationPara == null) MessageBox.Show("元件高程值設定失敗");
+                            elevationPara.Set(targetPt.Z - lowLevel.ProjectElevation - adjustValue);
 
                             //設定標稱管徑與間距
                             int pipeCount = pickElements.Count();
@@ -131,36 +141,28 @@ namespace AutoHangerCreation_ButtonCreate
                             //List<string> stepPara = new List<string> { "管間距1", "管間距2", "管間距3", "管間距4", "管間距5", "管間距6", "管間距7", "管間距8", "管間距9" };
                             List<string> diaPara = new List<string> { };
                             List<string> stepPara = new List<string> { };
-                            //List<string> unionList = diaPara.Union(stepPara).ToList();
-                            //foreach (string item in unionList)
-                            //{
-                            //    if (!checkPara(instance, item))
-                            //    {
-                            //        MessageBox.Show($"執行失敗，請檢查{instance.Symbol.FamilyName}元件中是否缺少{item}參數欄位");
-                            //        return Result.Failed;
-                            //    }
-                            //}
 
                             #region 以迴圈整理要寫入的參數欄位
                             foreach (string st in defaultDia)
                             {
-                                if (checkPara(instance, st)) diaPara.Add(st);
+                                if (method.checkPara(instance, st)) diaPara.Add(st);
                             }
                             foreach(string st in defaultStep)
                             {
-                                if (checkPara(instance, st)) stepPara.Add(st);
+                                if (method.checkPara(instance, st)) stepPara.Add(st);
                             }
                             #endregion
                             List<double> diaToSet = new List<double>();
                             List<double> stepToSet = new List<double>();
+                            List<Element> pickPipes = new List<Element>();
                             double toMinus = 0;
                             foreach (ElementWithTrans eTrans in pickElements)
                             {
                                 double nominalDia = getPipeDia(eTrans.pipe);
+                                pickPipes.Add(eTrans.pipe);
                                 diaToSet.Add(nominalDia);
                                 double distance = eTrans.locateCrv.Distance(firstPoint);
                                 double convertUnit = UnitUtils.ConvertFromInternalUnits(distance, unitType);
-                                //MessageBox.Show(convertUnit.ToString());
                                 if (toMinus != 0)
                                 {
                                     double step = distance - toMinus;
@@ -212,10 +214,9 @@ namespace AutoHangerCreation_ButtonCreate
                             //2.利用線的boundingbox filter搭配CategortFilter
                             //3.篩選找出來的樓板
                             //4.利用CurveIntersectionSolid來計算長度
-
                             double adjust = UnitUtils.ConvertToInternalUnits(1000, unitType);
                             XYZ upperPoint = new XYZ(newTargetPt.X, newTargetPt.Y, newTargetPt.Z + adjust);
-                            if (checkPara(instance, "PipeBottomToFloor"))
+                            if (method.checkPara(instance, "PipeBottomToFloor"))
                             {
                                 instance.LookupParameter("PipeBottomToFloor").Set(adjust);
                             }
@@ -223,6 +224,7 @@ namespace AutoHangerCreation_ButtonCreate
                             {
                                 MessageBox.Show("請確認元件中是否有「PipeBottomToFloor」參數");
                             }
+                            method.updateHangerContent(instance, pickPipes);
                             trans.Commit();
 
                             ////更改策略，改以放置吊架時盡量讓他長大，利用boundingBox 去和revitLinkInstance做干涉，找到和此吊架有干涉的版後再排序
@@ -231,13 +233,13 @@ namespace AutoHangerCreation_ButtonCreate
                             ////3.利用版元件和boundingbox去做干涉，後針對這些版位置的高低進行排序
                             ////4.創造線和版的實體進行交接干涉
                             trans.Start("吊架與版資訊蒐集");
-                            Dictionary<ElementId, List<Element>> hangerSlabDict = getHangerSlabDict(doc, instance);
+                            Dictionary<ElementId, List<Element>> hangerSlabDict = method.getHangerSlabDict(doc, instance);
                             Line intersectCrv = Line.CreateBound(newTargetPt, upperPoint);
                             List<XYZ> intersectPts = new List<XYZ>();
                             if (hangerSlabDict[instance.Id].Count() == 0) return Result.Failed;
                             foreach (Element linkSlab in hangerSlabDict[instance.Id])
                             {
-                                RevitLinkInstance targetLink = getTargetLinkedInstance(doc, linkSlab.Document.Title);
+                                RevitLinkInstance targetLink =method.getTargetLinkedInstance(doc, linkSlab.Document.Title);
                                 Transform linkedInstTrans = targetLink.GetTotalTransform();
                                 Solid slabSolid = singleSolidFromElement(linkSlab);
                                 slabSolid = SolidUtils.CreateTransformed(slabSolid, linkedInstTrans);
@@ -269,39 +271,40 @@ namespace AutoHangerCreation_ButtonCreate
                     break;
                 }
             }
+            Counter.count += 1;
             return Result.Succeeded;
         }
 
-        public RevitLinkInstance getTargetLinkedInstance(Document doc, string linkTilte)
-        {
-            RevitLinkInstance targetLinkInstance = null;
-            try
-            {
-                ElementCategoryFilter linkedFileFilter = new ElementCategoryFilter(BuiltInCategory.OST_RvtLinks);
-                FilteredElementCollector linkedFileCollector = new FilteredElementCollector(doc).OfClass(typeof(RevitLinkInstance)).WhereElementIsNotElementType();
-                if (linkedFileCollector.Count() > 0)
-                {
-                    foreach (RevitLinkInstance linkedInst in linkedFileCollector)
-                    {
-                        //if (linkedInst.GetLinkDocument().Title == linkTilte)
-                        if (linkedInst.Name.Contains(linkTilte))
-                        {
-                            targetLinkInstance = linkedInst;
-                            break;
-                        }
-                    }
-                }
-                else if (targetLinkInstance == null)
-                {
-                    MessageBox.Show("未找到對應的實做Revit外參檔!!");
-                }
-            }
-            catch
-            {
-                MessageBox.Show("找尋連結實體發生問題!");
-            }
-            return targetLinkInstance;
-        }
+        //public RevitLinkInstance getTargetLinkedInstance(Document doc, string linkTilte)
+        //{
+        //    RevitLinkInstance targetLinkInstance = null;
+        //    try
+        //    {
+        //        ElementCategoryFilter linkedFileFilter = new ElementCategoryFilter(BuiltInCategory.OST_RvtLinks);
+        //        FilteredElementCollector linkedFileCollector = new FilteredElementCollector(doc).OfClass(typeof(RevitLinkInstance)).WhereElementIsNotElementType();
+        //        if (linkedFileCollector.Count() > 0)
+        //        {
+        //            foreach (RevitLinkInstance linkedInst in linkedFileCollector)
+        //            {
+        //                //if (linkedInst.GetLinkDocument().Title == linkTilte)
+        //                if (linkedInst.Name.Contains(linkTilte))
+        //                {
+        //                    targetLinkInstance = linkedInst;
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //        else if (targetLinkInstance == null)
+        //        {
+        //            MessageBox.Show("未找到對應的實做Revit外參檔!!");
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        MessageBox.Show("找尋連結實體發生問題!");
+        //    }
+        //    return targetLinkInstance;
+        //}
         public double getPipeIntersection(Element e, Curve curve, XYZ userSelection)
         {
             //取得管得位置資訊後進行變換
@@ -319,20 +322,7 @@ namespace AutoHangerCreation_ButtonCreate
             double distance = curve.Distance(userSelection);
             return distance;
         }
-        public static XYZ TransformPoint(XYZ point, Transform transform)
-        {
-            double x = point.X;
-            double y = point.Y;
-            double z = point.Z;
-            XYZ val = transform.get_Basis(0);
-            XYZ val2 = transform.get_Basis(1);
-            XYZ val3 = transform.get_Basis(2);
-            XYZ origin = transform.Origin;
-            double xTemp = x * val.X + y * val2.X + z * val3.X + origin.X;
-            double yTemp = x * val.Y + y * val2.Y + z * val3.Y + origin.Y;
-            double zTemp = x * val.Z + y * val2.Z + z * val3.Z + origin.Z;
-            return new XYZ(xTemp, yTemp, zTemp);
-        }
+      
         public Family findHangerFamily(Document doc)
         {
             string targetName = PIpeHangerSetting.Default.MultiHangerSelected;
@@ -351,90 +341,58 @@ namespace AutoHangerCreation_ButtonCreate
             if (targetFamily == null) MessageBox.Show("尚未匯入指定的管吊架元件");
             return targetFamily;
         }
-        public List<RevitLinkInstance> findLinkInstWithSlab(Document doc)
-        {
-            List<RevitLinkInstance> targetLinkedInstances = new List<RevitLinkInstance>();
-            ElementCategoryFilter linkedFileFilter = new ElementCategoryFilter(BuiltInCategory.OST_RvtLinks);
-            FilteredElementCollector linkedFileCollector = new FilteredElementCollector(doc).WherePasses(linkedFileFilter).WhereElementIsNotElementType();
-            try
-            {
-                if (linkedFileCollector.Count() > 0)
-                {
-                    foreach (RevitLinkInstance linkedInst in linkedFileCollector)
-                    {
-                        Document linkDoc = linkedInst.GetLinkDocument();
-                        bool isLoaded = RevitLinkType.IsLoaded(doc, linkedInst.GetTypeId());
-                        if (linkDoc != null && isLoaded)
-                        {
-                            FilteredElementCollector linkedSlab = new FilteredElementCollector(linkDoc).OfClass(typeof(Instance)).OfCategory(BuiltInCategory.OST_Floors).WhereElementIsNotElementType();
-                            if (linkedSlab.Count() == 0) continue;
-                            else
-                            {
-                                //MessageBox.Show($"{linkedInst.Name}中有{linkedSlab.Count()}個樓板");
-                                if (!targetLinkedInstances.Contains(linkedInst)) targetLinkedInstances.Add(linkedInst);
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                MessageBox.Show("請檢查外參連結是否載入或有問題!");
-            }
-            return targetLinkedInstances;
-        }
-        public Dictionary<ElementId, List<Element>> getHangerSlabDict(Document doc, FamilyInstance inst)
-        {
-            //其實應該再試試另一個方法，是以連結檔中樓板為主進行變換的方法
-            Dictionary<ElementId, List<Element>> hangerSlabDict = new Dictionary<ElementId, List<Element>>();
-            try
-            {
-                List<RevitLinkInstance> slabLinkInstances = findLinkInstWithSlab(doc);
-                Transform totalTransform = null;
-                Transform inverseTransform = null;
-                if (slabLinkInstances.Count != 0)
-                {
-                    foreach (RevitLinkInstance linkedInst in slabLinkInstances)
-                    {
-                        if (!hangerSlabDict.Keys.Contains(inst.Id))
-                        {
-                            totalTransform = linkedInst.GetTotalTransform();
-                            inverseTransform = totalTransform.Inverse;
-                            FilteredElementCollector collectorSB = getAllLinkedSlab(linkedInst.GetLinkDocument());
+        //public Dictionary<ElementId, List<Element>> getHangerSlabDict(Document doc, FamilyInstance inst)
+        //{
+        //    //其實應該再試試另一個方法，是以連結檔中樓板為主進行變換的方法
+        //    Dictionary<ElementId, List<Element>> hangerSlabDict = new Dictionary<ElementId, List<Element>>();
+        //    try
+        //    {
+        //        List<RevitLinkInstance> slabLinkInstances = method.findLinkInstWithSlab(doc);
+        //        Transform totalTransform = null;
+        //        Transform inverseTransform = null;
+        //        if (slabLinkInstances.Count != 0)
+        //        {
+        //            foreach (RevitLinkInstance linkedInst in slabLinkInstances)
+        //            {
+        //                if (!hangerSlabDict.Keys.Contains(inst.Id))
+        //                {
+        //                    totalTransform = linkedInst.GetTotalTransform();
+        //                    inverseTransform = totalTransform.Inverse;
+        //                    FilteredElementCollector collectorSB = method.getAllLinkedSlab(linkedInst.GetLinkDocument());
 
-                            ////針對吊架進行座標變換
-                            Transform newTrans = Transform.Identity;
-                            BoundingBoxXYZ instBounding = inst.get_BoundingBox(null);
-                            Outline outLine = new Outline(inverseTransform.OfPoint(instBounding.Min), inverseTransform.OfPoint(instBounding.Max));
-                            //快慢速過濾器結合->和樓板進行碰撞
-                            BoundingBoxIntersectsFilter boundingBoxIntersectsFilter = new BoundingBoxIntersectsFilter(outLine);
-                            collectorSB.WherePasses(boundingBoxIntersectsFilter);
-                            List<Element> tempList = collectorSB.ToList();
-                            if (tempList.Count > 0)
-                            {
-                                hangerSlabDict.Add(inst.Id, tempList);
-                            }
-                            else
-                            {
-                                MessageBox.Show("請確認吊架上方是否有樓板可供支撐!");
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                MessageBox.Show("無法判斷吊架與樓板的關係!");
-            }
-            return hangerSlabDict;
-        }
+        //                    ////針對吊架進行座標變換
+        //                    Transform newTrans = Transform.Identity;
+        //                    BoundingBoxXYZ instBounding = inst.get_BoundingBox(null);
+        //                    Outline outLine = new Outline(inverseTransform.OfPoint(instBounding.Min), inverseTransform.OfPoint(instBounding.Max));
+        //                    //快慢速過濾器結合->和樓板進行碰撞
+        //                    BoundingBoxIntersectsFilter boundingBoxIntersectsFilter = new BoundingBoxIntersectsFilter(outLine);
+        //                    collectorSB.WherePasses(boundingBoxIntersectsFilter);
+        //                    List<Element> tempList = collectorSB.ToList();
+        //                    if (tempList.Count > 0)
+        //                    {
+        //                        hangerSlabDict.Add(inst.Id, tempList);
+        //                    }
+        //                    else
+        //                    {
+        //                        MessageBox.Show("請確認吊架上方是否有樓板可供支撐!");
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        MessageBox.Show("無法判斷吊架與樓板的關係!");
+        //    }
+        //    return hangerSlabDict;
+        //}
         public Dictionary<ElementId, List<Element>> getHangerSlabDict2(Document doc, FamilyInstance inst)
         {
             //其實應該再試試另一個方法，是以連結檔中樓板為主進行變換的方法
             Dictionary<ElementId, List<Element>> hangerSlabDict = new Dictionary<ElementId, List<Element>>();
             try
             {
-                List<RevitLinkInstance> slabLinkInstances = findLinkInstWithSlab(doc);
+                List<RevitLinkInstance> slabLinkInstances = method.findLinkInstWithSlab(doc);
                 Transform totalTransform = null;
                 Transform inverseTransform = null;
                 if (slabLinkInstances.Count != 0)
@@ -445,7 +403,7 @@ namespace AutoHangerCreation_ButtonCreate
                         {
                             totalTransform = linkedInst.GetTotalTransform();
                             inverseTransform = totalTransform.Inverse;
-                            FilteredElementCollector collectorSB = getAllLinkedSlab(linkedInst.GetLinkDocument());
+                            FilteredElementCollector collectorSB = method.getAllLinkedSlab(linkedInst.GetLinkDocument());
                             foreach (Element e in collectorSB)
                             {
                                 Solid slabSolid = singleSolidFromElement(e);
@@ -490,11 +448,11 @@ namespace AutoHangerCreation_ButtonCreate
             }
             return hangerSlabDict;
         }
-        public FilteredElementCollector getAllLinkedSlab(Document linkedDoc)
-        {
-            FilteredElementCollector slabCollector = new FilteredElementCollector(linkedDoc).OfCategory(BuiltInCategory.OST_Floors).WhereElementIsNotElementType();
-            return slabCollector;
-        }
+        //public FilteredElementCollector getAllLinkedSlab(Document linkedDoc)
+        //{
+        //    FilteredElementCollector slabCollector = new FilteredElementCollector(linkedDoc).OfCategory(BuiltInCategory.OST_Floors).WhereElementIsNotElementType();
+        //    return slabCollector;
+        //}
         public IList<Solid> GetTargetSolids(Element element)
         {
             List<Solid> solids = new List<Solid>();
@@ -630,19 +588,19 @@ namespace AutoHangerCreation_ButtonCreate
             //return convertUnit;
             return targetPara.AsDouble();
         }
-        public bool checkPara(Element elem, string paraName)
-        {
-            bool result = false;
-            foreach (Parameter parameter in elem.Parameters)
-            {
-                Parameter val = parameter;
-                if (val.Definition.Name == paraName)
-                {
-                    result = true;
-                }
-            }
-            return result;
-        }
+        //public bool checkPara(Element elem, string paraName)
+        //{
+        //    bool result = false;
+        //    foreach (Parameter parameter in elem.Parameters)
+        //    {
+        //        Parameter val = parameter;
+        //        if (val.Definition.Name == paraName)
+        //        {
+        //            result = true;
+        //        }
+        //    }
+        //    return result;
+        //}
         public static ModelLine CreateModelLine(
 /*Autodesk.Revit.ApplicationServices.Application app,*/Document doc,
   XYZ p,

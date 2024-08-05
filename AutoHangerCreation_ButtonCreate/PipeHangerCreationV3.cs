@@ -233,7 +233,7 @@ namespace AutoHangerCreation_ButtonCreate
 
         public FamilySymbol getFamilySymbol(Document doc, double pipeDiameter)
         {
-            Family tagerFamily = null;
+            Family tagetFamily = null;
             string targetFamilyName = PIpeHangerSetting.Default.FamilySelected;
             ElementFilter FamilyFilter = new ElementClassFilter(typeof(Family));
             FilteredElementCollector hangerCollector = new FilteredElementCollector(doc);
@@ -242,15 +242,16 @@ namespace AutoHangerCreation_ButtonCreate
             {
                 if (family.Name == targetFamilyName)
                 {
-                    tagerFamily = family;
+                    tagetFamily = family;
                 }
             }
+            if (tagetFamily == null) MessageBox.Show("尚未設定要使用的吊架!!");
 
             //以管徑判斷，取得targetFamily下的管徑
             FamilySymbol targetSymbol = null;
-            if (tagerFamily != null)
+            if (tagetFamily != null)
             {
-                foreach (ElementId hangId in tagerFamily.GetFamilySymbolIds())
+                foreach (ElementId hangId in tagetFamily.GetFamilySymbolIds())
                 {
                     FamilySymbol tempSymbol = doc.GetElement(hangId) as FamilySymbol;
                     if (targetFamilyName == "M_光纖纜架_管附件")
@@ -283,14 +284,30 @@ namespace AutoHangerCreation_ButtonCreate
                 if (null != targetFamily)
                 {
                     MEPCurve pipCrv = element as MEPCurve; //選取管件，一定可以轉型MEPCurve
-                    Level HangLevel = pipCrv.ReferenceLevel;
-                    double moveDown = HangLevel.ProjectElevation; //取得該層樓高層
-                    instance = doc.Create.NewFamilyInstance(location, targetFamily, HangLevel, StructuralType.NonStructural); //一定要宣告structural 類型? yes
+                    Level hangLevel = pipCrv.ReferenceLevel;
+                    Level targetLevel = null;
+                    //針對連結管，取得樓層的方式需要微調
+                    string levelName = hangLevel.Name;
+                    FilteredElementCollector tempCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Levels).WhereElementIsNotElementType();
+                    foreach (Element e in tempCollector)
+                    {
+                        if (e.Name == levelName)
+                        {
+                            Level temp = e as Level;
+                            targetLevel = temp;
+                        }
+                    }
+                    if(targetLevel==null)
+                    {
+                        MessageBox.Show("請確認本機檔與連結檔中的樓層名稱是否一致");
+                    }
+                    double moveDown = targetLevel.ProjectElevation; //取得該層樓高層
+                    instance = doc.Create.NewFamilyInstance(location, targetFamily, targetLevel, StructuralType.NonStructural); //一定要宣告structural 類型? yes
                     double toMove2 = location.Z - moveDown;
 #if RELEASE2019
                     instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
 #else
-                        instance.get_Parameter(BuiltInParameter.INSTANCE_ELEVATION_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
+                    instance.get_Parameter(BuiltInParameter.INSTANCE_ELEVATION_PARAM).Set(toMove2); //因為給予instance reference level後，實體會基於level的高度上進行偏移，因此需要將偏移量再扣掉一次，非常重要 !!!!。
 #endif
                 }
             }
@@ -331,7 +348,7 @@ namespace AutoHangerCreation_ButtonCreate
 
         public bool AllowReference(Reference refer, XYZ point)
         {
-            return false;
+            return true;
         }
     }
     public class linkedPipeSelectionFilter : ISelectionFilter
